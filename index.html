@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -23,12 +22,14 @@
       display: flex;
       flex-direction: column;
       border-left: 2px solid #ccc;
+      min-width: 300px;
+      max-width: 400px;
     }
     #videoFrame {
       flex: 1;
       border: none;
     }
-    #videoInput {
+    #videoUrl {
       margin-bottom: 10px;
     }
     #toolbar {
@@ -54,18 +55,21 @@
       border: none;
       outline: none;
       overflow-y: auto;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      max-width: 100%;
     }
   </style>
 </head>
 <body>
-  <!-- 左側影片區 -->
+  <!-- 主頁影片區 -->
   <div id="left">
-    <input type="text" id="videoUrl" placeholder="貼上 YouTube 網址" />
+    <input type="text" id="videoUrl" placeholder="貼上影片網址（YouTube / Bilibili）" />
     <button onclick="loadVideo()">載入影片</button>
     <iframe id="videoFrame" src="" allowfullscreen></iframe>
   </div>
 
-  <!-- 右側筆記區 -->
+  <!-- 子頁筆記區 -->
   <div id="right">
     <div id="toolbar">
       <button onclick="toggleFormat(this, 'bold')">粗體</button>
@@ -93,19 +97,17 @@
       localStorage.setItem("dictationNote", note.innerHTML);
     });
 
-    // 格式切換（含藍底高亮）
+    // 格式切換（可取消高亮）
     function toggleFormat(button, command) {
       document.execCommand(command);
-      buttons.forEach(btn => btn.classList.remove("active"));
-      button.classList.add("active");
+      button.classList.toggle("active");
       note.focus();
     }
 
-    // 套用顏色（並高亮按鈕）
+    // 套用顏色（可取消高亮）
     function applyColor(button, color) {
       document.execCommand("foreColor", false, color);
-      buttons.forEach(btn => btn.classList.remove("active"));
-      button.classList.add("active");
+      button.classList.toggle("active");
       note.focus();
     }
 
@@ -117,21 +119,14 @@
       }
     }
 
-    // 載入影片
+    // 載入影片（支援任意嵌入網址）
     function loadVideo() {
-      const url = document.getElementById("videoUrl").value;
-      const videoId = extractYouTubeID(url);
-      if (videoId) {
-        document.getElementById("videoFrame").src = "https://www.youtube.com/embed/" + videoId;
+      const url = document.getElementById("videoUrl").value.trim();
+      if (url.startsWith("http")) {
+        document.getElementById("videoFrame").src = url;
       } else {
-        alert("請輸入有效的 YouTube 網址");
+        alert("請輸入有效的影片網址（必須是 http 開頭）");
       }
-    }
-
-    // 擷取 YouTube ID
-    function extractYouTubeID(url) {
-      const match = url.match(/(?:v=|\/embed\/|\.be\/)([a-zA-Z0-9_-]{11})/);
-      return match ? match[1] : "";
     }
   </script>
 </body>
