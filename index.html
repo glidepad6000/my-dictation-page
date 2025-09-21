@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -61,21 +59,17 @@
       word-wrap: break-word;
       overflow-wrap: break-word;
       max-width: 100%;
-#note, #note p, #note div {
-  line-height: 0.9;
-}
+    }
 
-/* ✅ 折疊區塊專屬行距設定 */
-details summary {
-  line-height: 1.0;
-}
-
-details p {
-  line-height: 1.0;
-}
-
-
-
+    /* ✅ 行距設定 */
+    #note, #note p, #note div {
+      line-height: 0.9;
+    }
+    details summary {
+      line-height: 1.0;
+    }
+    details p {
+      line-height: 1.2;
     }
   </style>
 </head>
@@ -90,7 +84,7 @@ details p {
   <!-- 右側筆記區 -->
   <div id="right">
     <div id="toolbar">
-      <!-- 第一行：格式功能（已移除清除筆記） -->
+      <!-- 工具列（已移除清除筆記） -->
       <div>
         <button onclick="toggleFormat(this, 'bold')">粗體</button>
         <button onclick="toggleFormat(this, 'italic')">斜體</button>
@@ -98,7 +92,6 @@ details p {
         <button onclick="toggleFormat(this, 'strikeThrough')">刪除線</button>
         <button onclick="insertFold()">插入折疊區塊</button>
       </div>
-      <!-- 第二行：顏色功能 -->
       <div style="margin-top: 5px;">
         <button class="color-btn" onclick="applyColor(this, '#FF0000')">紅色</button>
         <button class="color-btn" onclick="applyColor(this, '#0078D4')">藍色</button>
@@ -122,13 +115,8 @@ details p {
     // 格式切換
     function toggleFormat(button, command) {
       const isActive = button.classList.contains("active");
-      if (!isActive) {
-        document.execCommand(command);
-        button.classList.add("active");
-      } else {
-        document.execCommand(command);
-        button.classList.remove("active");
-      }
+      document.execCommand(command);
+      button.classList.toggle("active", !isActive);
       note.focus();
     }
 
@@ -156,7 +144,6 @@ details p {
       const range = selection.getRangeAt(0);
       let node = range.startContainer;
 
-      // 檢查是否在 <details> 裡
       while (node && node.nodeName !== "BODY") {
         if (node.nodeName === "DETAILS") {
           alert("目前選取區域在折疊區塊內，無法再插入折疊區塊。");
@@ -202,5 +189,3 @@ details p {
   </script>
 </body>
 </html>
-
-
