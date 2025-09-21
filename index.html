@@ -70,7 +70,7 @@
       margin-bottom: 8px;
     }
     details p {
-      line-height: 1.2;
+      line-height: 1.0;
       margin-top: 0;
     }
   </style>
@@ -140,8 +140,8 @@
       let node = range.startContainer;
 
       while (node && node.nodeName !== "BODY") {
-        if (node.nodeName === "DETAILS") {
-          alert("目前選取區域在折疊區塊內，無法再插入折疊區塊。");
+        if (node.nodeName === "SUMMARY") {
+          alert("目前選取區域在標題內，無法插入新區塊。請將光標移出標題區。");
           return;
         }
         node = node.parentNode;
