@@ -61,10 +61,19 @@
       word-wrap: break-word;
       overflow-wrap: break-word;
       max-width: 100%;
-  /* ✅ 行距調整：筆記區與折疊區塊都套用 */
-  #note, #note p, #note div, details p {
-    line-height: 1.2;
-  }
+#note, #note p, #note div {
+  line-height: 0.9;
+}
+
+/* ✅ 折疊區塊專屬行距設定 */
+details summary {
+  line-height: 1.0;
+}
+
+details p {
+  line-height: 1.2;
+}
+
 
 
     }
@@ -193,5 +202,4 @@
   </script>
 </body>
 </html>
-
 
