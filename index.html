@@ -1,47 +1,44 @@
-const note = document.getElementById("note");
-const buttons = document.querySelectorAll("#toolbar button");
-
-// 儲存每個按鈕的狀態
-const buttonStates = new Map();
-buttons.forEach(btn => buttonStates.set(btn, false));
-
-// 自動儲存筆記
-note.innerHTML = localStorage.getItem("dictationNote") || "";
-note.addEventListener("input", () => {
-  localStorage.setItem("dictationNote", note.innerHTML);
-});
-
-// 格式切換（立即執行 + 可取消）
-function toggleFormat(button, command) {
-  const isActive = buttonStates.get(button);
-  note.focus(); // 確保選取區域存在
-  if (!isActive) {
-    document.execCommand(command, false, null);
-    button.classList.add("active");
-    buttonStates.set(button, true);
-  } else {
-    // 嘗試取消格式（使用 removeFormat 或重複執行）
-    if (command === "bold" || command === "italic" || command === "underline" || command === "strikeThrough") {
-      document.execCommand(command, false, null); // 再執行一次以取消
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>英文聽寫練習</title>
+  <style>
+    body {
+      display: flex;
+      height: 100vh;
+      margin: 0;
+      font-family: sans-serif;
     }
-    button.classList.remove("active");
-    buttonStates.set(button, false);
-  }
-}
-
-// 套用顏色（立即執行 + 可取消）
-function applyColor(button, color) {
-  const isActive = buttonStates.get(button);
-  note.focus();
-  if (!isActive) {
-    document.execCommand("foreColor", false, color);
-    button.classList.add("active");
-    buttonStates.set(button, true);
-  } else {
-    document.execCommand("foreColor", false, "#000000"); // 重設為黑色
-    button.classList.remove("active");
-    buttonStates.set(button, false);
-  }
-}
-
+    #left {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+    }
+    #right {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-left: 2px solid #ccc;
+      min-width: 300px;
+      max-width: 400px;
+    }
+    #videoFrame {
+      flex: 1;
+      border: none;
+    }
+    #videoUrl {
+      margin-bottom: 10px;
+    }
+    #toolbar {
+      padding: 5px;
+      background: #f0f0f0;
+      border-bottom: 1px solid #ccc;
+    }
+    #toolbar button {
+      margin: 3px;
+      padding: 5px 10px;
+      border: none;
+      background: #fff
 
