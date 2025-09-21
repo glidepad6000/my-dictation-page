@@ -1,0 +1,138 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>英文聽寫練習</title>
+  <style>
+    body {
+      display: flex;
+      height: 100vh;
+      margin: 0;
+      font-family: sans-serif;
+    }
+    #left {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+    }
+    #right {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-left: 2px solid #ccc;
+    }
+    #videoFrame {
+      flex: 1;
+      border: none;
+    }
+    #videoInput {
+      margin-bottom: 10px;
+    }
+    #toolbar {
+      padding: 5px;
+      background: #f0f0f0;
+      border-bottom: 1px solid #ccc;
+    }
+    #toolbar button {
+      margin-right: 5px;
+      padding: 5px 10px;
+      border: none;
+      background: #fff;
+      cursor: pointer;
+    }
+    #toolbar button.active {
+      background: #0078D4;
+      color: white;
+    }
+    #note {
+      flex: 1;
+      padding: 10px;
+      background: #fff;
+      border: none;
+      outline: none;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <!-- 左側影片區 -->
+  <div id="left">
+    <input type="text" id="videoUrl" placeholder="貼上 YouTube 網址" />
+    <button onclick="loadVideo()">載入影片</button>
+    <iframe id="videoFrame" src="" allowfullscreen></iframe>
+  </div>
+
+  <!-- 右側筆記區 -->
+  <div id="right">
+    <div id="toolbar">
+      <button onclick="toggleFormat(this, 'bold')">粗體</button>
+      <button onclick="toggleFormat(this, 'italic')">斜體</button>
+      <button onclick="toggleFormat(this, 'underline')">底線</button>
+      <button onclick="toggleFormat(this, 'strikeThrough')">刪除線</button>
+      <button onclick="applyColor(this, '#FF0000')">紅色</button>
+      <button onclick="applyColor(this, '#0078D4')">藍色</button>
+      <button onclick="clearNote()">清除筆記</button>
+    </div>
+    <div id="note" contenteditable="true">
+      在這裡聽寫並標記格式...
+    </div>
+  </div>
+
+  <script>
+    const note = document.getElementById("note");
+    const buttons = document.querySelectorAll("#toolbar button");
+
+    // 載入儲存內容
+    note.innerHTML = localStorage.getItem("dictationNote") || "";
+
+    // 自動儲存
+    note.addEventListener("input", () => {
+      localStorage.setItem("dictationNote", note.innerHTML);
+    });
+
+    // 格式切換（含藍底高亮）
+    function toggleFormat(button, command) {
+      document.execCommand(command);
+      buttons.forEach(btn => btn.classList.remove("active"));
+      button.classList.add("active");
+      note.focus();
+    }
+
+    // 套用顏色（並高亮按鈕）
+    function applyColor(button, color) {
+      document.execCommand("foreColor", false, color);
+      buttons.forEach(btn => btn.classList.remove("active"));
+      button.classList.add("active");
+      note.focus();
+    }
+
+    // 清除筆記
+    function clearNote() {
+      if (confirm("確定要清除所有筆記嗎？")) {
+        note.innerHTML = "";
+        localStorage.removeItem("dictationNote");
+      }
+    }
+
+    // 載入影片
+    function loadVideo() {
+      const url = document.getElementById("videoUrl").value;
+      const videoId = extractYouTubeID(url);
+      if (videoId) {
+        document.getElementById("videoFrame").src = "https://www.youtube.com/embed/" + videoId;
+      } else {
+        alert("請輸入有效的 YouTube 網址");
+      }
+    }
+
+    // 擷取 YouTube ID
+    function extractYouTubeID(url) {
+      const match = url.match(/(?:v=|\/embed\/|\.be\/)([a-zA-Z0-9_-]{11})/);
+      return match ? match[1] : "";
+    }
+  </script>
+</body>
+</html>
