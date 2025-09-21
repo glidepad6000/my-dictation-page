@@ -152,9 +152,12 @@
       const dayOfWeek = today.getDay();
       let summaryStyle = dayOfWeek === 6 ? 'style="color:#00FF00;"' : "";
 
-      const template = `<details><summary ${summaryStyle}>📘 ${dateStr} 聽寫標題</summary><p>在這裡輸入筆記...</p></details><br>`;
-      document.execCommand("insertHTML", false, template);
+      const template = `<details>
+        <summary contenteditable="false" ${summaryStyle}>📘 <span contenteditable="true">${dateStr} 聽寫標題</span></summary>
+        <p>在這裡輸入筆記...</p>
+      </details><br>`;
 
+      document.execCommand("insertHTML", false, template);
       document.querySelectorAll(".color-btn").forEach(btn => btn.classList.remove("active"));
       note.focus();
     }
@@ -178,6 +181,20 @@
         const isActive = document.queryCommandState(cmd);
         button.classList.toggle("active", isActive);
       });
+    });
+
+    // ✅ 防止在 summary 裡按 Enter 清空
+    note.addEventListener("keydown", function(e) {
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return;
+
+      const node = selection.anchorNode;
+      const summary = node.closest ? node.closest("summary") : null;
+
+      if (summary && e.key === "Enter") {
+        e.preventDefault();
+        alert("標題區塊不支援換行，請在內容區輸入。");
+      }
     });
   </script>
 </body>
