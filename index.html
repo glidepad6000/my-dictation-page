@@ -1,114 +1,4 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-  <meta charset="UTF-8" />
-  <title>英文聽寫練習</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: sans-serif;
-      display: flex;
-      height: 100vh;
-    }
-    h2 {
-      font-size: 1.2em;
-      margin: 0 0 10px 0;
-    }
-    .left-panel, .right-panel {
-      padding: 0 20px 20px 20px;
-      box-sizing: border-box;
-    }
-    .left-panel {
-      flex-basis: 66.6666%;
-      max-width: 66.6666%;
-      background: #f0f0f0;
-      border-right: 1px solid #ccc;
-      display: flex;
-      flex-direction: column;
-    }
-    .right-panel {
-      flex-basis: 33.3333%;
-      max-width: 33.3333%;
-      background: #fff;
-      display: flex;
-      flex-direction: column;
-    }
-    .video-input-group {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 20px;
-    }
-    #video-url, #load-video {
-      height: 36px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      background: #fff;
-    }
-    #video-url {
-      flex: 1;
-      padding: 6px 10px;
-    }
-    #load-video {
-      padding: 0 12px;
-      font-size: 20px;
-      cursor: pointer;
-    }
-    #video-container iframe {
-      width: 100%;
-      height: 315px;
-    }
-    .toolbar {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-bottom: 10px;
-    }
-    .toolbar-row {
-      display: flex;
-      gap: 8px;
-    }
-    .toolbar button {
-      padding: 6px 10px;
-      font-size: 14px;
-      cursor: pointer;
-      border: 1px solid #ccc;
-      background: #eee;
-    }
-    .toolbar button.active {
-      background-color: #cce5ff;
-      border-color: #66b3ff;
-    }
-    .note-area {
-      flex: 1;
-      width: 100%;
-      padding: 10px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      background: #fff;
-      overflow-y: auto;
-    }
-    .fold-block {
-      border: 1px dashed #aaa;
-      padding: 6px;
-      margin: 6px 0;
-      background: #f0f0f0;
-      font-size: 16px;
-      line-height: 1.6;
-      font-weight: normal;
-      font-style: normal;
-      color: #000;
-    }
-    .fold-block * {
-      font-size: 16px !important;
-      line-height: 1.6 !important;
-    }
-    .fold-block summary {
-      font-weight: bold;
-      cursor: pointer;
-    }
-  </style>
-</head>
+<!-- ✅ 開頭與樣式略過，請從 <body> 開始貼起 -->
 <body>
   <div class="left-panel">
     <h2>🎬 影片區</h2>
@@ -132,8 +22,6 @@
         <button onclick="toggleColor('red', 'rgb(255, 0, 0)')" id="btn-red">🔴</button>
         <button onclick="toggleColor('blue', 'rgb(0, 0, 255)')" id="btn-blue">🔵</button>
         <button onclick="toggleColor('gold', 'rgb(255, 215, 0)')" id="btn-gold">🟡</button>
-      </div>
-      <div class="toolbar-row">
         <button onclick="deleteSelectedFoldBlock()">刪除選取的折疊區</button>
       </div>
     </div>
@@ -244,4 +132,21 @@
       if (saved) note.innerHTML = saved;
     });
 
-    document.add
+    document.addEventListener("selectionchange", updateToolbarState);
+
+    document.getElementById("load-video").addEventListener("click", () => {
+      const url = document.getElementById("video-url").value.trim();
+      const container = document.getElementById("video-container");
+      container.innerHTML = "";
+
+      if (url.includes("youtube.com") || url.includes("youtu.be")) {
+        const videoId = url.split("v=")[1]?.split("&")[0] || url.split("/").pop();
+        container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+      } else if (url.includes("bilibili.com")) {
+        window.open(url, "_blank");
+      } else {
+        container.innerHTML = `<p>不支援的影片網址。</p>`;
+      }
+    });
+  </script>
+</body>
