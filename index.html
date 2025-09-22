@@ -19,14 +19,16 @@
       box-sizing: border-box;
     }
     .left-panel {
-      width: 50%;
+      flex-basis: 66.6666%;
+      max-width: 66.6666%;
       background: #f0f0f0;
       border-right: 1px solid #ccc;
       display: flex;
       flex-direction: column;
     }
     .right-panel {
-      width: 50%;
+      flex-basis: 33.3333%;
+      max-width: 33.3333%;
       background: #fff;
       display: flex;
       flex-direction: column;
@@ -131,9 +133,10 @@
         <button onclick="toggleColor('blue', 'rgb(0, 0, 255)')" id="btn-blue">🔵</button>
         <button onclick="toggleColor('gold', 'rgb(255, 215, 0)')" id="btn-gold">🟡</button>
       </div>
+      <div class="toolbar-row">
+        <button onclick="deleteSelectedFoldBlock()">刪除選取的折疊區</button>
+      </div>
     </div>
-    <button onclick="selectLastFoldBlock()">選取最後折疊區</button>
-
     <div id="note" class="note-area" contenteditable="true"></div>
   </div>
 
@@ -183,18 +186,22 @@
       note.focus();
     }
 
-    function selectLastFoldBlock() {
-  const folds = note.querySelectorAll(".fold-block");
-  if (folds.length === 0) return;
-  const last = folds[folds.length - 1];
+    function deleteSelectedFoldBlock() {
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return;
 
-  const range = document.createRange();
-  range.selectNode(last);
-  const sel = window.getSelection();
-  sel.removeAllRanges();
-  sel.addRange(range);
-  note.focus();
-}
+      const range = sel.getRangeAt(0);
+      const container = range.commonAncestorContainer;
+      const fold = container.nodeType === 1
+        ? container.closest(".fold-block")
+        : container.parentElement?.closest(".fold-block");
+
+      if (fold) {
+        fold.remove();
+        sel.removeAllRanges();
+        note.focus();
+      }
+    }
 
     function updateToolbarState() {
       const commands = {
@@ -237,22 +244,4 @@
       if (saved) note.innerHTML = saved;
     });
 
-    document.addEventListener("selectionchange", updateToolbarState);
-
-    document.getElementById("load-video").addEventListener("click", () => {
-      const url = document.getElementById("video-url").value.trim();
-      const container = document.getElementById("video-container");
-      container.innerHTML = "";
-
-      if (url.includes("youtube.com") || url.includes("youtu.be")) {
-        const videoId = url.split("v=")[1]?.split("&")[0] || url.split("/").pop();
-        container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
-      } else if (url.includes("bilibili.com")) {
-        window.open(url, "_blank");
-      } else {
-        container.innerHTML = `<p>不支援的影片網址。</p>`;
-      }
-    });
-  </script>
-</body>
-</html>
+    document.add
