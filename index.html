@@ -11,6 +11,11 @@
       height: 100vh;
     }
 
+    h2 {
+      font-size: 1.2em;
+      margin-bottom: 10px;
+    }
+
     .left-panel, .right-panel {
       padding: 20px;
       box-sizing: border-box;
@@ -41,6 +46,8 @@
     #video-url, #load-video {
       height: 36px;
       font-size: 16px;
+      border: 1px solid #ccc;
+      background: #fff;
     }
 
     #video-url {
@@ -61,15 +68,27 @@
 
     .toolbar {
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
+      flex-direction: column;
+      gap: 6px;
       margin-bottom: 10px;
+    }
+
+    .toolbar-row {
+      display: flex;
+      gap: 8px;
     }
 
     .toolbar button {
       padding: 6px 10px;
       font-size: 14px;
       cursor: pointer;
+      border: 1px solid #ccc;
+      background: #eee;
+    }
+
+    .toolbar button.active {
+      background-color: #cce5ff;
+      border-color: #66b3ff;
     }
 
     .note-area {
@@ -127,36 +146,52 @@
   <div class="right-panel">
     <h2>📝 聽寫區</h2>
     <div class="toolbar">
-      <button onclick="format('bold')">粗體</button>
-      <button onclick="format('italic')">斜體</button>
-      <button onclick="format('underline')">底線</button>
-      <button onclick="insertCustomStrike()">刪除線</button>
-      <button onclick="insertFold()">插入折疊區塊</button>
-      <button onclick="insertColor('red')">🔴</button>
-      <button onclick="insertColor('blue')">🔵</button>
-      <button onclick="insertColor('gold')">🟡</button>
-      <button onclick="insertTimestamp()">⏱️ 時間標記</button>
+      <div class="toolbar-row">
+        <button id="btn-bold" onclick="toggleFormat('bold')">粗體</button>
+        <button id="btn-italic" onclick="toggleFormat('italic')">斜體</button>
+        <button id="btn-underline" onclick="toggleFormat('underline')">底線</button>
+        <button id="btn-strike" onclick="toggleStrike()">刪除線</button>
+        <button onclick="insertFold()">插入折疊區塊</button>
+      </div>
+      <div class="toolbar-row">
+        <button id="btn-red" onclick="toggleColor('red')">🔴</button>
+        <button id="btn-blue" onclick="toggleColor('blue')">🔵</button>
+        <button id="btn-gold" onclick="toggleColor('gold')">🟡</button>
+      </div>
     </div>
     <div id="note" class="note-area" contenteditable="true"></div>
   </div>
 
   <script>
-    function format(command) {
-      document.execCommand(command, false, null);
+    const note = document.getElementById("note");
+
+    function toggleFormat(command) {
+      document.execCommand(command);
+      updateToolbarState();
     }
 
-    function insertCustomStrike() {
+    function toggleStrike() {
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return;
+      const range = sel.getRangeAt(0);
       const span = document.createElement("span");
       span.className = "custom-strike";
-      span.textContent = getSelectionText() || "";
-      insertNode(span);
+      span.textContent = sel.toString();
+      range.deleteContents();
+      range.insertNode(span);
+      updateToolbarState();
     }
 
-    function insertColor(color) {
+    function toggleColor(color) {
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return;
+      const range = sel.getRangeAt(0);
       const span = document.createElement("span");
       span.style.color = color;
-      span.textContent = getSelectionText() || "";
-      insertNode(span);
+      span.textContent = sel.toString();
+      range.deleteContents();
+      range.insertNode(span);
+      updateToolbarState();
     }
 
     function insertFold() {
@@ -166,33 +201,63 @@
       summary.textContent = "折疊區塊";
       details.appendChild(summary);
       details.appendChild(document.createTextNode("內容..."));
-      insertNode(details);
-    }
-
-    function insertTimestamp() {
-      const now = new Date();
-      const time = now.toLocaleTimeString("zh-TW", { hour: '2-digit', minute: '2-digit' });
-      const span = document.createElement("span");
-      span.textContent = `⏱️ ${time}`;
-      insertNode(span);
-    }
-
-    function getSelectionText() {
-      const sel = window.getSelection();
-      return sel && sel.toString();
-    }
-
-    function insertNode(node) {
       const sel = window.getSelection();
       if (!sel.rangeCount) return;
       const range = sel.getRangeAt(0);
       range.deleteContents();
-      range.insertNode(node);
-      range.setStartAfter(node);
-      range.setEndAfter(node);
-      sel.removeAllRanges();
-      sel.addRange(range);
+      range.insertNode(details);
     }
+
+    function updateToolbarState() {
+      const commands = {
+        bold: "btn-bold",
+        italic: "btn-italic",
+        underline: "btn-underline"
+      };
+      for (const cmd in commands) {
+        const btn = document.getElementById(commands[cmd]);
+        if (document.queryCommandState(cmd)) {
+          btn.classList.add("active");
+        } else {
+          btn.classList.remove("active");
+        }
+      }
+
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return;
+      const node = sel.anchorNode?.parentElement;
+      const colorMap = {
+        red: "btn-red",
+        blue: "btn-blue",
+        gold: "btn-gold"
+      };
+      for (const color in colorMap) {
+        const btn = document.getElementById(colorMap[color]);
+        if (node?.style?.color === color) {
+          btn.classList.add("active");
+        } else {
+          btn.classList.remove("active");
+        }
+      }
+
+      const strikeBtn = document.getElementById("btn-strike");
+      if (node?.classList?.contains("custom-strike")) {
+        strikeBtn.classList.add("active");
+      } else {
+        strikeBtn.classList.remove("active");
+      }
+    }
+
+    note.addEventListener("mouseup", updateToolbarState);
+    note.addEventListener("keyup", () => {
+      updateToolbarState();
+      localStorage.setItem("dictation-note", note.innerHTML);
+    });
+
+    window.addEventListener("load", () => {
+      const saved = localStorage.getItem("dictation-note");
+      if (saved) note.innerHTML = saved;
+    });
 
     document.getElementById("load-video").addEventListener("click", () => {
       const url = document.getElementById("video-url").value.trim();
@@ -203,12 +268,4 @@
         const videoId = url.split("v=")[1]?.split("&")[0] || url.split("/").pop();
         container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
       } else if (url.includes("bilibili.com")) {
-        container.innerHTML = `<p>請手動開啟 Bilibili 影片：<a href="${url}" target="_blank">${url}</a></p>`;
-      } else {
-        container.innerHTML = `<p>無法辨識的影片網址。</p>`;
-      }
-    });
-  </script>
-
-</body>
-</html>
+        container.innerHTML = `<p>請手動開啟 Bilibili 影片：<a href="${url}" target="_blank">${url}</a></
