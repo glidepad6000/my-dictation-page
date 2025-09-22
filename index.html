@@ -150,13 +150,13 @@
         <button id="btn-bold" onclick="toggleFormat('bold')">粗體</button>
         <button id="btn-italic" onclick="toggleFormat('italic')">斜體</button>
         <button id="btn-underline" onclick="toggleFormat('underline')">底線</button>
-        <button id="btn-strike" onclick="toggleStrike()">刪除線</button>
+        <button id="btn-strike" onclick="insertCustomStrike()">刪除線</button>
         <button onclick="insertFold()">插入折疊區塊</button>
       </div>
       <div class="toolbar-row">
-        <button id="btn-red" onclick="toggleColor('red')">🔴</button>
-        <button id="btn-blue" onclick="toggleColor('blue')">🔵</button>
-        <button id="btn-gold" onclick="toggleColor('gold')">🟡</button>
+        <button id="btn-red" onclick="insertColor('red')">🔴</button>
+        <button id="btn-blue" onclick="insertColor('blue')">🔵</button>
+        <button id="btn-gold" onclick="insertColor('gold')">🟡</button>
       </div>
     </div>
     <div id="note" class="note-area" contenteditable="true"></div>
@@ -170,27 +170,19 @@
       updateToolbarState();
     }
 
-    function toggleStrike() {
-      const sel = window.getSelection();
-      if (!sel.rangeCount) return;
-      const range = sel.getRangeAt(0);
+    function insertCustomStrike() {
       const span = document.createElement("span");
       span.className = "custom-strike";
-      span.textContent = sel.toString();
-      range.deleteContents();
-      range.insertNode(span);
+      span.textContent = getSelectionText() || "";
+      insertNode(span);
       updateToolbarState();
     }
 
-    function toggleColor(color) {
-      const sel = window.getSelection();
-      if (!sel.rangeCount) return;
-      const range = sel.getRangeAt(0);
+    function insertColor(color) {
       const span = document.createElement("span");
       span.style.color = color;
-      span.textContent = sel.toString();
-      range.deleteContents();
-      range.insertNode(span);
+      span.textContent = getSelectionText() || "";
+      insertNode(span);
       updateToolbarState();
     }
 
@@ -201,11 +193,24 @@
       summary.textContent = "折疊區塊";
       details.appendChild(summary);
       details.appendChild(document.createTextNode("內容..."));
+      insertNode(details);
+    }
+
+    function getSelectionText() {
+      const sel = window.getSelection();
+      return sel && sel.toString();
+    }
+
+    function insertNode(node) {
       const sel = window.getSelection();
       if (!sel.rangeCount) return;
       const range = sel.getRangeAt(0);
       range.deleteContents();
-      range.insertNode(details);
+      range.insertNode(node);
+      range.setStartAfter(node);
+      range.setEndAfter(node);
+      sel.removeAllRanges();
+      sel.addRange(range);
     }
 
     function updateToolbarState() {
@@ -266,6 +271,4 @@
 
       if (url.includes("youtube.com") || url.includes("youtu.be")) {
         const videoId = url.split("v=")[1]?.split("&")[0] || url.split("/").pop();
-        container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
-      } else if (url.includes("bilibili.com")) {
-        container.innerHTML = `<p>請手動開啟 Bilibili 影片：<a href="${url}" target="_blank">${url}</a></
+        container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" frameborder
