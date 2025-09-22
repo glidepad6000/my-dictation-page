@@ -136,16 +136,14 @@
     <h2>📝 聽寫區</h2>
     <div class="toolbar">
       <div class="toolbar-row">
-        <button id="btn-bold" onclick="toggleFormat('bold')">粗體</button>
-        <button id="btn-italic" onclick="toggleFormat('italic')">斜體</button>
-        <button id="btn-underline" onclick="toggleFormat('underline')">底線</button>
-        <button id="btn-strike" onclick="toggleStrike()">刪除線</button>
-        <button onclick="insertFold()">插入折疊區塊</button>
-      </div>
-      <div class="toolbar-row">
-        <button id="btn-red" onclick="insertColor('red')">🔴</button>
-        <button id="btn-blue" onclick="insertColor('blue')">🔵</button>
-        <button id="btn-gold" onclick="insertColor('gold')">🟡</button>
+       <button id="btn-bold" onclick="toggleFormat('bold')">粗體</button>
+<button id="btn-italic" onclick="toggleFormat('italic')">斜體</button>
+<button id="btn-underline" onclick="toggleFormat('underline')">底線</button>
+<button id="btn-strike" onclick="toggleStrike()">刪除線</button>
+<button onclick="insertColor('red')" id="btn-red">🔴</button>
+<button onclick="insertColor('blue')" id="btn-blue">🔵</button>
+<button onclick="insertColor('gold')" id="btn-gold">🟡</button>
+
       </div>
     </div>
     <div id="note" class="note-area" contenteditable="true"></div>
@@ -156,16 +154,19 @@
 
   function toggleFormat(command) {
     document.execCommand(command);
-    updateToolbarState();
-  }
-
-  function insertColor(color) {
-    document.execCommand("foreColor", false, color);
+    note.focus(); // 確保光標回到聽寫區
     updateToolbarState();
   }
 
   function toggleStrike() {
     document.execCommand("strikeThrough");
+    note.focus();
+    updateToolbarState();
+  }
+
+  function insertColor(color) {
+    document.execCommand("foreColor", false, color);
+    note.focus();
     updateToolbarState();
   }
 
@@ -184,6 +185,7 @@
     const sel = window.getSelection();
     sel.removeAllRanges();
     sel.addRange(range);
+    note.focus();
   }
 
   function updateToolbarState() {
@@ -196,21 +198,6 @@
     for (const cmd in commands) {
       const btn = document.getElementById(commands[cmd]);
       if (document.queryCommandState(cmd)) {
-        btn.classList.add("active");
-      } else {
-        btn.classList.remove("active");
-      }
-    }
-
-    const foreColor = document.queryCommandValue("foreColor")?.toLowerCase();
-    const colorMap = {
-      red: "btn-red",
-      blue: "btn-blue",
-      gold: "btn-gold"
-    };
-    for (const color in colorMap) {
-      const btn = document.getElementById(colorMap[color]);
-      if (foreColor.includes(color)) {
         btn.classList.add("active");
       } else {
         btn.classList.remove("active");
