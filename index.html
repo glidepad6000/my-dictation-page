@@ -155,16 +155,29 @@
 
       const range = sel.getRangeAt(0);
       const selectedText = range.toString();
-      if (!selectedText) return;
 
-      let html = "";
+      let span = document.createElement("span");
+      span.textContent = selectedText || "\u200B";
+
       if (type === "strike") {
-        html = `<span style="text-decoration: line-through; text-decoration-color: red; color: black;">${selectedText}</span>`;
+        span.style.textDecoration = "line-through";
+        span.style.textDecorationColor = "red";
+        span.style.color = "black";
       } else if (type === "underline") {
-        html = `<span style="text-decoration: underline; text-decoration-color: green; color: black;">${selectedText}</span>`;
+        span.style.textDecoration = "underline";
+        span.style.textDecorationColor = "green";
+        span.style.color = "black";
       }
 
-      document.execCommand("insertHTML", false, html);
+      range.deleteContents();
+      range.insertNode(span);
+
+      const after = document.createTextNode("\u200B");
+      span.after(after);
+      range.setStart(after, 1);
+      range.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(range);
       note.focus();
     }
 
@@ -185,6 +198,15 @@
       const node = sel.anchorNode?.parentElement;
       if (!node) return "";
       return window.getComputedStyle(node).color.toLowerCase();
+    }
+
+    function hasDecoration(type) {
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return false;
+      const node = sel.anchorNode?.parentElement;
+      if (!node) return false;
+      const style = window.getComputedStyle(node);
+      return style.textDecorationLine.includes(type);
     }
 
     function insertFold() {
@@ -233,23 +255,13 @@
           btn.classList.add("active");
         } else {
           btn.classList.remove("active");
-        }
-      }
-
-      const colorState = getColorState();
-            const colorMap = {
-        "rgb(255, 0, 0)": "btn-red",
-        "rgb(0, 0, 255)": "btn-blue",
-        "rgb(255, 215, 0)": "btn-gold"
-      };
-      for (const rgb in colorMap) {
-        const btn = document.getElementById(colorMap[rgb]);
-        if (colorState === rgb) {
-          btn.classList.add("active");
         } else {
           btn.classList.remove("active");
         }
       }
+
+      document.getElementById("btn-underline").classList.toggle("active", hasDecoration("underline"));
+      document.getElementById("btn-strike").classList.toggle("active", hasDecoration("line-through"));
     }
 
     note.addEventListener("input", () => {
