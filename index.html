@@ -13,11 +13,11 @@
 
     h2 {
       font-size: 1.2em;
-      margin-bottom: 10px;
+      margin: 0 0 10px 0; /* 移除上方空間 */
     }
 
     .left-panel, .right-panel {
-      padding: 20px;
+      padding: 0 20px 20px 20px; /* 頂部 padding 改為 0 */
       box-sizing: border-box;
     }
 
@@ -261,14 +261,4 @@
 
     window.addEventListener("load", () => {
       const saved = localStorage.getItem("dictation-note");
-      if (saved) note.innerHTML = saved;
-    });
-
-    document.getElementById("load-video").addEventListener("click", () => {
-      const url = document.getElementById("video-url").value.trim();
-      const container = document.getElementById("video-container");
-      container.innerHTML = "";
-
-      if (url.includes("youtube.com") || url.includes("youtu.be")) {
-        const videoId = url.split("v=")[1]?.split("&")[0] || url.split("/").pop();
-        container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" frameborder
+      if (saved) note.innerHTML = saved
