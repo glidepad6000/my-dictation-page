@@ -139,7 +139,7 @@
         <button id="btn-bold" onclick="toggleFormat('bold')">粗體</button>
         <button id="btn-italic" onclick="toggleFormat('italic')">斜體</button>
         <button id="btn-underline" onclick="toggleFormat('underline')">底線</button>
-        <button id="btn-strike" onclick="insertCustomStrike()">刪除線</button>
+        <button id="btn-strike" onclick="toggleStrike()">刪除線</button>
         <button onclick="insertFold()">插入折疊區塊</button>
       </div>
       <div class="toolbar-row">
@@ -150,6 +150,7 @@
     </div>
     <div id="note" class="note-area" contenteditable="true"></div>
   </div>
+</body>
 <script>
   const note = document.getElementById("note");
 
@@ -158,19 +159,13 @@
     updateToolbarState();
   }
 
-  function insertCustomStrike() {
-    const span = document.createElement("span");
-    span.className = "custom-strike";
-    span.textContent = getSelectionText() || "\u200B";
-    insertNode(span);
+  function insertColor(color) {
+    document.execCommand("foreColor", false, color);
     updateToolbarState();
   }
 
-  function insertColor(color) {
-    const span = document.createElement("span");
-    span.style.color = color;
-    span.textContent = getSelectionText() || "\u200B";
-    insertNode(span);
+  function toggleStrike() {
+    document.execCommand("strikeThrough");
     updateToolbarState();
   }
 
@@ -181,7 +176,7 @@
     summary.textContent = "折疊區塊";
     details.appendChild(summary);
     details.appendChild(document.createTextNode("內容..."));
-    note.appendChild(details); // 強制插入在聽寫區最外層
+    note.appendChild(details);
 
     const range = document.createRange();
     range.selectNodeContents(details);
@@ -191,28 +186,12 @@
     sel.addRange(range);
   }
 
-  function getSelectionText() {
-    const sel = window.getSelection();
-    return sel && sel.toString();
-  }
-
-  function insertNode(node) {
-    const sel = window.getSelection();
-    if (!sel.rangeCount) return;
-    const range = sel.getRangeAt(0);
-    range.deleteContents();
-    range.insertNode(node);
-    range.setStartAfter(node);
-    range.setEndAfter(node);
-    sel.removeAllRanges();
-    sel.addRange(range);
-  }
-
   function updateToolbarState() {
     const commands = {
       bold: "btn-bold",
       italic: "btn-italic",
-      underline: "btn-underline"
+      underline: "btn-underline",
+      strikeThrough: "btn-strike"
     };
     for (const cmd in commands) {
       const btn = document.getElementById(commands[cmd]);
@@ -223,9 +202,7 @@
       }
     }
 
-    const sel = window.getSelection();
-    if (!sel.rangeCount) return;
-    const node = sel.anchorNode?.parentElement;
+    const foreColor = document.queryCommandValue("foreColor")?.toLowerCase();
     const colorMap = {
       red: "btn-red",
       blue: "btn-blue",
@@ -233,19 +210,11 @@
     };
     for (const color in colorMap) {
       const btn = document.getElementById(colorMap[color]);
-      const computed = node ? window.getComputedStyle(node).color : "";
-      if (computed.includes(color)) {
+      if (foreColor.includes(color)) {
         btn.classList.add("active");
       } else {
         btn.classList.remove("active");
       }
-    }
-
-    const strikeBtn = document.getElementById("btn-strike");
-    if (node?.classList?.contains("custom-strike")) {
-      strikeBtn.classList.add("active");
-    } else {
-      strikeBtn.classList.remove("active");
     }
   }
 
@@ -275,5 +244,5 @@
     }
   });
 </script>
-</body>
+
 </html>
