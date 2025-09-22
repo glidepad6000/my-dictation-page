@@ -164,11 +164,57 @@
     updateToolbarState();
   }
 
-  function insertColor(color) {
-    document.execCommand("foreColor", false, color);
-    note.focus();
-    updateToolbarState();
+function getColorState() {
+  const sel = window.getSelection();
+  if (!sel.rangeCount) return "";
+  const node = sel.anchorNode?.parentElement;
+  if (!node) return "";
+  return window.getComputedStyle(node).color.toLowerCase();
+}
+
+function toggleColor(colorName, rgbValue) {
+  const current = getColorState();
+  if (current === rgbValue) {
+    document.execCommand("foreColor", false, "black");
+  } else {
+    document.execCommand("foreColor", false, colorName);
   }
+  note.focus();
+  updateToolbarState();
+}
+
+function updateToolbarState() {
+  const commands = {
+    bold: "btn-bold",
+    italic: "btn-italic",
+    underline: "btn-underline",
+    strikeThrough: "btn-strike"
+  };
+  for (const cmd in commands) {
+    const btn = document.getElementById(commands[cmd]);
+    if (document.queryCommandState(cmd)) {
+      btn.classList.add("active");
+    } else {
+      btn.classList.remove("active");
+    }
+  }
+
+  const colorState = getColorState();
+  const colorMap = {
+    "rgb(255, 0, 0)": "btn-red",
+    "rgb(0, 0, 255)": "btn-blue",
+    "rgb(255, 215, 0)": "btn-gold"
+  };
+  for (const rgb in colorMap) {
+    const btn = document.getElementById(colorMap[rgb]);
+    if (colorState === rgb) {
+      btn.classList.add("active");
+    } else {
+      btn.classList.remove("active");
+    }
+  }
+}
+
 
   function insertFold() {
     const details = document.createElement("details");
