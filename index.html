@@ -159,9 +159,9 @@
 
       let html = "";
       if (type === "strike") {
-        html = `<span style="text-decoration: line-through; color: red;">${selectedText}</span>`;
+        html = `<span style="text-decoration: line-through; text-decoration-color: red; color: black;">${selectedText}</span>`;
       } else if (type === "underline") {
-        html = `<span style="text-decoration: underline; color: green;">${selectedText}</span>`;
+        html = `<span style="text-decoration: underline; text-decoration-color: green; color: black;">${selectedText}</span>`;
       }
 
       document.execCommand("insertHTML", false, html);
@@ -237,7 +237,7 @@
       }
 
       const colorState = getColorState();
-      const colorMap = {
+            const colorMap = {
         "rgb(255, 0, 0)": "btn-red",
         "rgb(0, 0, 255)": "btn-blue",
         "rgb(255, 215, 0)": "btn-gold"
@@ -252,7 +252,7 @@
       }
     }
 
-        note.addEventListener("input", () => {
+    note.addEventListener("input", () => {
       localStorage.setItem("dictation-note", note.innerHTML);
     });
 
@@ -282,4 +282,3 @@
   </script>
 </body>
 </html>
-
