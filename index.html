@@ -143,11 +143,19 @@
   <script>
     function wrapSelection(before, after) {
       const textarea = document.getElementById("note");
+      if (!textarea) return;
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
       const selected = textarea.value.substring(start, end);
       const newText = before + selected + after;
       textarea.setRangeText(newText, start, end, "end");
+    }
+
+    function insertAtCursor(text) {
+      const textarea = document.getElementById("note");
+      if (!textarea) return;
+      const start = textarea.selectionStart;
+      textarea.setRangeText(text, start, start, "end");
     }
 
     function insertFold() {
@@ -159,12 +167,6 @@
       const now = new Date();
       const time = now.toLocaleTimeString("zh-TW", { hour: '2-digit', minute: '2-digit' });
       insertAtCursor(`⏱️ ${time}\n`);
-    }
-
-    function insertAtCursor(text) {
-      const textarea = document.getElementById("note");
-      const start = textarea.selectionStart;
-      textarea.setRangeText(text, start, start, "end");
     }
 
     document.getElementById("load-video").addEventListener("click", () => {
