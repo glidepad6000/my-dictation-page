@@ -10,17 +10,14 @@
       display: flex;
       height: 100vh;
     }
-
     h2 {
       font-size: 1.2em;
-      margin: 0 0 10px 0; /* 移除上方空間 */
+      margin: 0 0 10px 0;
     }
-
     .left-panel, .right-panel {
-      padding: 0 20px 20px 20px; /* 頂部 padding 改為 0 */
+      padding: 0 20px 20px 20px;
       box-sizing: border-box;
     }
-
     .left-panel {
       width: 50%;
       background: #f0f0f0;
@@ -28,56 +25,47 @@
       display: flex;
       flex-direction: column;
     }
-
     .right-panel {
       width: 50%;
       background: #fff;
       display: flex;
       flex-direction: column;
     }
-
     .video-input-group {
       display: flex;
       align-items: center;
       gap: 8px;
       margin-bottom: 20px;
     }
-
     #video-url, #load-video {
       height: 36px;
       font-size: 16px;
       border: 1px solid #ccc;
       background: #fff;
     }
-
     #video-url {
       flex: 1;
       padding: 6px 10px;
     }
-
     #load-video {
       padding: 0 12px;
       font-size: 20px;
       cursor: pointer;
     }
-
     #video-container iframe {
       width: 100%;
       height: 315px;
     }
-
     .toolbar {
       display: flex;
       flex-direction: column;
       gap: 6px;
       margin-bottom: 10px;
     }
-
     .toolbar-row {
       display: flex;
       gap: 8px;
     }
-
     .toolbar button {
       padding: 6px 10px;
       font-size: 14px;
@@ -85,12 +73,10 @@
       border: 1px solid #ccc;
       background: #eee;
     }
-
     .toolbar button.active {
       background-color: #cce5ff;
       border-color: #66b3ff;
     }
-
     .note-area {
       flex: 1;
       width: 100%;
@@ -100,13 +86,11 @@
       background: #fff;
       overflow-y: auto;
     }
-
     .custom-strike {
       position: relative;
       text-decoration: underline;
       text-decoration-color: green;
     }
-
     .custom-strike::after {
       content: "";
       position: absolute;
@@ -118,14 +102,12 @@
       transform: translateY(-50%);
       pointer-events: none;
     }
-
     .fold-block {
       border: 1px dashed #aaa;
       padding: 6px;
       margin: 6px 0;
       background: #f0f0f0;
     }
-
     .fold-block summary {
       font-weight: bold;
       cursor: pointer;
@@ -133,7 +115,6 @@
   </style>
 </head>
 <body>
-
   <div class="left-panel">
     <h2>🎬 影片區</h2>
     <div class="video-input-group">
@@ -142,7 +123,6 @@
     </div>
     <div id="video-container"></div>
   </div>
-
   <div class="right-panel">
     <h2>📝 聽寫區</h2>
     <div class="toolbar">
@@ -161,104 +141,126 @@
     </div>
     <div id="note" class="note-area" contenteditable="true"></div>
   </div>
+<script>
+  const note = document.getElementById("note");
 
-  <script>
-    const note = document.getElementById("note");
+  function toggleFormat(command) {
+    document.execCommand(command);
+    updateToolbarState();
+  }
 
-    function toggleFormat(command) {
-      document.execCommand(command);
-      updateToolbarState();
-    }
+  function insertCustomStrike() {
+    const span = document.createElement("span");
+    span.className = "custom-strike";
+    span.textContent = getSelectionText() || "";
+    insertNode(span);
+    updateToolbarState();
+  }
 
-    function insertCustomStrike() {
-      const span = document.createElement("span");
-      span.className = "custom-strike";
-      span.textContent = getSelectionText() || "";
-      insertNode(span);
-      updateToolbarState();
-    }
+  function insertColor(color) {
+    const span = document.createElement("span");
+    span.style.color = color;
+    span.textContent = getSelectionText() || "";
+    insertNode(span);
+    updateToolbarState();
+  }
 
-    function insertColor(color) {
-      const span = document.createElement("span");
-      span.style.color = color;
-      span.textContent = getSelectionText() || "";
-      insertNode(span);
-      updateToolbarState();
-    }
+  function insertFold() {
+    const details = document.createElement("details");
+    details.className = "fold-block";
+    const summary = document.createElement("summary");
+    summary.textContent = "折疊區塊";
+    details.appendChild(summary);
+    details.appendChild(document.createTextNode("內容..."));
+    insertNode(details);
+  }
 
-    function insertFold() {
-      const details = document.createElement("details");
-      details.className = "fold-block";
-      const summary = document.createElement("summary");
-      summary.textContent = "折疊區塊";
-      details.appendChild(summary);
-      details.appendChild(document.createTextNode("內容..."));
-      insertNode(details);
-    }
+  function getSelectionText() {
+    const sel = window.getSelection();
+    return sel && sel.toString();
+  }
 
-    function getSelectionText() {
-      const sel = window.getSelection();
-      return sel && sel.toString();
-    }
+  function insertNode(node) {
+    const sel = window.getSelection();
+    if (!sel.rangeCount) return;
+    const range = sel.getRangeAt(0);
+    range.deleteContents();
+    range.insertNode(node);
+    range.setStartAfter(node);
+    range.setEndAfter(node);
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
 
-    function insertNode(node) {
-      const sel = window.getSelection();
-      if (!sel.rangeCount) return;
-      const range = sel.getRangeAt(0);
-      range.deleteContents();
-      range.insertNode(node);
-      range.setStartAfter(node);
-      range.setEndAfter(node);
-      sel.removeAllRanges();
-      sel.addRange(range);
-    }
-
-    function updateToolbarState() {
-      const commands = {
-        bold: "btn-bold",
-        italic: "btn-italic",
-        underline: "btn-underline"
-      };
-      for (const cmd in commands) {
-        const btn = document.getElementById(commands[cmd]);
-        if (document.queryCommandState(cmd)) {
-          btn.classList.add("active");
-        } else {
-          btn.classList.remove("active");
-        }
-      }
-
-      const sel = window.getSelection();
-      if (!sel.rangeCount) return;
-      const node = sel.anchorNode?.parentElement;
-      const colorMap = {
-        red: "btn-red",
-        blue: "btn-blue",
-        gold: "btn-gold"
-      };
-      for (const color in colorMap) {
-        const btn = document.getElementById(colorMap[color]);
-        if (node?.style?.color === color) {
-          btn.classList.add("active");
-        } else {
-          btn.classList.remove("active");
-        }
-      }
-
-      const strikeBtn = document.getElementById("btn-strike");
-      if (node?.classList?.contains("custom-strike")) {
-        strikeBtn.classList.add("active");
+  function updateToolbarState() {
+    const commands = {
+      bold: "btn-bold",
+      italic: "btn-italic",
+      underline: "btn-underline"
+    };
+    for (const cmd in commands) {
+      const btn = document.getElementById(commands[cmd]);
+      if (document.queryCommandState(cmd)) {
+        btn.classList.add("active");
       } else {
-        strikeBtn.classList.remove("active");
+        btn.classList.remove("active");
       }
     }
 
-    note.addEventListener("mouseup", updateToolbarState);
-    note.addEventListener("keyup", () => {
-      updateToolbarState();
-      localStorage.setItem("dictation-note", note.innerHTML);
-    });
+    const sel = window.getSelection();
+    if (!sel.rangeCount) return;
+    const node = sel.anchorNode?.parentElement;
+    const colorMap = {
+      red: "btn-red",
+      blue: "btn-blue",
+      gold: "btn-gold"
+    };
+    for (const color in colorMap) {
+      const btn = document.getElementById(colorMap[color]);
+      if (node?.style?.color === color) {
+        btn.classList.add("active");
+      } else {
+        btn.classList.remove("active");
+      }
+    }
 
-    window.addEventListener("load", () => {
-      const saved = localStorage.getItem("dictation-note");
-      if (saved) note.innerHTML = saved
+    const strikeBtn = document.getElementById("btn-strike");
+    if (node?.classList?.contains("custom-strike")) {
+      strikeBtn.classList.add("active");
+    } else {
+      strikeBtn.classList.remove("active");
+    }
+  }
+
+  // 儲存筆記內容
+  note.addEventListener("input", () => {
+    localStorage.setItem("dictation-note", note.innerHTML);
+  });
+
+  // 恢復筆記內容
+  window.addEventListener("load", () => {
+    const saved = localStorage.getItem("dictation-note");
+    if (saved) note.innerHTML = saved;
+  });
+
+  // 即時更新工具列狀態
+  document.addEventListener("selectionchange", updateToolbarState);
+
+  // 影片嵌入
+  document.getElementById("load-video").addEventListener("click", () => {
+    const url = document.getElementById("video-url").value.trim();
+    const container = document.getElementById("video-container");
+    container.innerHTML = "";
+
+    if (url.includes("youtube.com") || url.includes("youtu.be")) {
+      const videoId = url.split("v=")[1]?.split("&")[0] || url.split("/").pop();
+      container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+    } else if (url.includes("bilibili.com")) {
+      container.innerHTML = `<p>請手動開啟 Bilibili 影片：<a href="${url}" target="_blank">${url}</a></p>`;
+    } else {
+      container.innerHTML = `<p>無法辨識影片網址。</p>`;
+    }
+  });
+</script>
+</body>
+</html>
