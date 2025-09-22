@@ -1,201 +1,99 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>英文聽寫練習</title>
   <style>
     body {
-      display: flex;
-      height: 100vh;
-      margin: 0;
       font-family: sans-serif;
-    }
-    #left {
-      flex: 2;
-      display: flex;
-      flex-direction: column;
-      padding: 10px;
-    }
-    #right {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      border-left: 2px solid #ccc;
-      min-width: 300px;
-      max-width: 400px;
-    }
-    #videoFrame {
-      flex: 1;
-      border: none;
-    }
-    #videoUrl {
-      margin-bottom: 10px;
-    }
-    #toolbar {
-      padding: 5px;
-      background: #f0f0f0;
-      border-bottom: 1px solid #ccc;
-    }
-    #toolbar button {
-      margin: 3px;
-      padding: 5px 10px;
-      border: none;
-      background: #fff;
-      cursor: pointer;
-    }
-    #toolbar button.active {
-      background: #0078D4;
-      color: white;
-      border-radius: 6px;
-    }
-    #note {
-      flex: 1;
-      padding: 10px;
-      background-color: #000000;
-      color: #FFFFFF;
-      border: none;
-      outline: none;
-      overflow-y: auto;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
-      max-width: 100%;
+      padding: 20px;
+      background: #f9f9f9;
     }
 
-    /* ✅ 行距與間距設定 */
-    #note, #note p, #note div {
-      line-height: 0.9;
+    .video-input-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
     }
-    details summary {
-      line-height: 1.0;
-      margin-bottom: 8px;
+
+    #video-url {
+      flex: 1;
+      padding: 6px 10px;
+      font-size: 16px;
     }
-    details p {
-      line-height: 1.0;
-      margin-top: 0;
+
+    #load-video {
+      padding: 6px 12px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .custom-strike {
+      position: relative;
+      text-decoration: underline;
+      text-decoration-color: green;
+    }
+
+    .custom-strike::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 2px;
+      background-color: red;
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    .note-area {
+      width: 100%;
+      height: 300px;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      background: #fff;
+      resize: vertical;
     }
   </style>
 </head>
 <body>
-  <div id="left">
-    <input type="text" id="videoUrl" placeholder="貼上影片網址（YouTube / Bilibili）" />
-    <button onclick="loadVideo()">載入影片</button>
-    <iframe id="videoFrame" src="" allowfullscreen></iframe>
+
+  <h1>📘 英文聽寫練習</h1>
+
+  <div class="video-input-group">
+    <input type="text" id="video-url" placeholder="貼上影片網址（YouTube / Bilibili）">
+    <button id="load-video">↵</button>
   </div>
 
-  <div id="right">
-    <div id="toolbar">
-      <div>
-        <button onclick="toggleFormat(this, 'bold')">粗體</button>
-        <button onclick="toggleFormat(this, 'italic')">斜體</button>
-        <button onclick="toggleFormat(this, 'underline')">底線</button>
-        <button onclick="toggleFormat(this, 'strikeThrough')">刪除線</button>
-        <button onclick="insertFold()">插入折疊區塊</button>
-      </div>
-      <div style="margin-top: 5px;">
-        <button class="color-btn" onclick="applyColor(this, '#FF0000')">紅色</button>
-        <button class="color-btn" onclick="applyColor(this, '#0078D4')">藍色</button>
-        <button class="color-btn" onclick="applyColor(this, '#FFD700')">黃色</button>
-      </div>
-    </div>
-    <div id="note" contenteditable="true">
-      在這裡聽寫並標記格式...
-    </div>
+  <div id="video-container">
+    <!-- 影片將載入於此 -->
   </div>
+
+  <h2>📝 筆記區</h2>
+  <textarea class="note-area" placeholder="在這裡輸入筆記..."></textarea>
+
+  <h2>✂️ 刪除線範例</h2>
+  <p>這是一段 <span class="custom-strike">被刪除的文字</span>，底線是綠色，刪除線是紅色。</p>
 
   <script>
-    const note = document.getElementById("note");
+    document.getElementById("load-video").addEventListener("click", () => {
+      const url = document.getElementById("video-url").value.trim();
+      const container = document.getElementById("video-container");
+      container.innerHTML = "";
 
-    note.innerHTML = localStorage.getItem("dictationNote") || "";
-    note.addEventListener("input", () => {
-      localStorage.setItem("dictationNote", note.innerHTML);
-    });
-
-    function toggleFormat(button, command) {
-      const isActive = button.classList.contains("active");
-      document.execCommand(command);
-      button.classList.toggle("active", !isActive);
-      note.focus();
-    }
-
-    function applyColor(button, color) {
-      const allColorButtons = document.querySelectorAll(".color-btn");
-      const isActive = button.classList.contains("active");
-
-      allColorButtons.forEach(btn => btn.classList.remove("active"));
-
-      if (!isActive) {
-        document.execCommand("foreColor", false, color);
-        button.classList.add("active");
+      if (url.includes("youtube.com") || url.includes("youtu.be")) {
+        const videoId = url.split("v=")[1]?.split("&")[0] || url.split("/").pop();
+        container.innerHTML = `<iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+      } else if (url.includes("bilibili.com")) {
+        container.innerHTML = `<p>請手動開啟 Bilibili 影片：<a href="${url}" target="_blank">${url}</a></p>`;
       } else {
-        document.execCommand("foreColor", false, "#FFFFFF");
-      }
-      note.focus();
-    }
-
-    function insertFold() {
-      const selection = window.getSelection();
-      if (selection.rangeCount === 0) return;
-
-      const range = selection.getRangeAt(0);
-      let node = range.startContainer;
-
-      while (node && node.nodeName !== "BODY") {
-        if (node.nodeName === "SUMMARY") {
-          alert("目前選取區域在標題內，無法插入新區塊。請將光標移出標題區。");
-          return;
-        }
-        node = node.parentNode;
-      }
-
-      const today = new Date();
-      const dateStr = today.toISOString().slice(0, 10);
-      const dayOfWeek = today.getDay();
-      let summaryStyle = dayOfWeek === 6 ? 'style="color:#00FF00;"' : "";
-
-      const template = `<details>
-        <summary contenteditable="false" ${summaryStyle}>📘 <span contenteditable="true">${dateStr} 聽寫標題</span></summary>
-        <p>在這裡輸入筆記...</p>
-      </details><br>`;
-
-      document.execCommand("insertHTML", false, template);
-      document.querySelectorAll(".color-btn").forEach(btn => btn.classList.remove("active"));
-      note.focus();
-    }
-
-    function loadVideo() {
-      const url = document.getElementById("videoUrl").value.trim();
-      if (url.startsWith("http")) {
-        document.getElementById("videoFrame").src = url;
-      } else {
-        alert("請輸入有效的影片網址（必須是 http 開頭）");
-      }
-    }
-
-    document.addEventListener("selectionchange", () => {
-      const formatCommands = ["bold", "italic", "underline", "strikeThrough"];
-      formatCommands.forEach(cmd => {
-        const button = [...document.querySelectorAll("#toolbar button")].find(btn =>
-          btn.textContent.includes(cmd === "strikeThrough" ? "刪除線" : cmd === "underline" ? "底線" : cmd === "italic" ? "斜體" : "粗體")
-        );
-        if (!button) return;
-        const isActive = document.queryCommandState(cmd);
-        button.classList.toggle("active", isActive);
-      });
-    });
-
-    // ✅ 防止在 summary 裡按 Enter 清空
-    note.addEventListener("keydown", function(e) {
-      const selection = window.getSelection();
-      if (!selection.rangeCount) return;
-
-      const node = selection.anchorNode;
-      const summary = node.closest ? node.closest("summary") : null;
-
-      if (summary && e.key === "Enter") {
-        e.preventDefault();
-        alert("標題區塊不支援換行，請在內容區輸入。");
+        container.innerHTML = `<p>無法辨識的影片網址。</p>`;
       }
     });
   </script>
+
 </body>
 </html>
