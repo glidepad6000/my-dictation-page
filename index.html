@@ -127,8 +127,7 @@
         <button id="btn-bold" onclick="toggleFormat('bold')">粗體</button>
         <button id="btn-italic" onclick="toggleFormat('italic')">斜體</button>
         <button id="btn-underline" onclick="applyCustomFormat('underline')">底線</button>
-<button id="btn-strike" onclick="applyCustomFormat('strike')">刪除線</button>
-
+        <button id="btn-strike" onclick="applyCustomFormat('strike')">刪除線</button>
         <button onclick="insertFold()">插入折疊區塊</button>
       </div>
       <div class="toolbar-row">
@@ -148,6 +147,25 @@
       document.execCommand(command);
       note.focus();
       updateToolbarState();
+    }
+
+    function applyCustomFormat(type) {
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return;
+
+      const range = sel.getRangeAt(0);
+      const selectedText = range.toString();
+      if (!selectedText) return;
+
+      let html = "";
+      if (type === "strike") {
+        html = `<span style="text-decoration: line-through; color: red;">${selectedText}</span>`;
+      } else if (type === "underline") {
+        html = `<span style="text-decoration: underline; color: green;">${selectedText}</span>`;
+      }
+
+      document.execCommand("insertHTML", false, html);
+      note.focus();
     }
 
     function toggleColor(colorName, rgbValue) {
@@ -207,9 +225,7 @@
     function updateToolbarState() {
       const commands = {
         bold: "btn-bold",
-        italic: "btn-italic",
-        underline: "btn-underline",
-        strikeThrough: "btn-strike"
+        italic: "btn-italic"
       };
       for (const cmd in commands) {
         const btn = document.getElementById(commands[cmd]);
@@ -236,7 +252,7 @@
       }
     }
 
-    note.addEventListener("input", () => {
+        note.addEventListener("input", () => {
       localStorage.setItem("dictation-note", note.innerHTML);
     });
 
@@ -247,7 +263,7 @@
 
     document.addEventListener("selectionchange", updateToolbarState);
 
-       document.getElementById("load-video").addEventListener("click", () => {
+    document.getElementById("load-video").addEventListener("click", () => {
       const url = document.getElementById("video-url").value.trim();
       const container = document.getElementById("video-container");
       container.innerHTML = "";
@@ -266,3 +282,4 @@
   </script>
 </body>
 </html>
+
