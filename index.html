@@ -38,15 +38,19 @@
       margin-bottom: 20px;
     }
 
-    #video-url {
-      flex: 1;
-      padding: 6px 10px;
+    #video-url, #load-video {
+      height: 36px;
       font-size: 16px;
     }
 
+    #video-url {
+      flex: 1;
+      padding: 6px 10px;
+    }
+
     #load-video {
-      padding: 6px 12px;
-      font-size: 18px;
+      padding: 0 12px;
+      font-size: 20px;
       cursor: pointer;
     }
 
@@ -128,10 +132,9 @@
       <button onclick="wrapSelection('<u>', '</u>')">底線</button>
       <button onclick="wrapSelection('<span class=\\\"custom-strike\\\">', '</span>')">刪除線</button>
       <button onclick="insertFold()">插入折疊區塊</button>
-      <button onclick="wrapSelection('<span style=\\\"color:red\\\">', '</span>')">紅色</button>
-      <button onclick="wrapSelection('<span style=\\\"color:blue\\\">', '</span>')">藍色</button>
-      <button onclick="wrapSelection('<span style=\\\"color:gold\\\">', '</span>')">黃色</button>
-      <button onclick="insertTitle()">📘 聽寫標題</button>
+      <button onclick="wrapSelection('<span style=\\\"color:red\\\">', '</span>')">🔴</button>
+      <button onclick="wrapSelection('<span style=\\\"color:blue\\\">', '</span>')">🔵</button>
+      <button onclick="wrapSelection('<span style=\\\"color:gold\\\">', '</span>')">🟡</button>
       <button onclick="insertTimestamp()">⏱️ 時間標記</button>
     </div>
     <textarea id="note" class="note-area" placeholder="在這裡輸入筆記..."></textarea>
@@ -150,11 +153,6 @@
     function insertFold() {
       const block = `<details class="fold-block"><summary>折疊區塊</summary>\n內容...\n</details>\n`;
       insertAtCursor(block);
-    }
-
-    function insertTitle() {
-      const today = new Date().toISOString().slice(0, 10);
-      insertAtCursor(`📘 ${today} 聽寫標題\n`);
     }
 
     function insertTimestamp() {
