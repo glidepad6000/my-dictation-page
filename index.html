@@ -2,8 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>英文聽寫練習</title>
+  <title>英文聽寫子頁</title>
   <style>
     body {
       font-family: sans-serif;
@@ -11,23 +10,31 @@
       background: #f9f9f9;
     }
 
-    .video-input-group {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    #video-container {
       margin-bottom: 20px;
     }
 
-    #video-url {
-      flex: 1;
-      padding: 6px 10px;
-      font-size: 16px;
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
     }
 
-    #load-video {
-      padding: 6px 12px;
-      font-size: 18px;
+    .toolbar button {
+      padding: 6px 10px;
+      font-size: 14px;
       cursor: pointer;
+    }
+
+    .note-area {
+      width: 100%;
+      height: 300px;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      background: #fff;
+      resize: vertical;
     }
 
     .custom-strike {
@@ -48,51 +55,88 @@
       pointer-events: none;
     }
 
-    .note-area {
-      width: 100%;
-      height: 300px;
-      padding: 10px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      background: #fff;
-      resize: vertical;
+    .fold-block {
+      border: 1px dashed #aaa;
+      padding: 6px;
+      margin: 6px 0;
+      background: #f0f0f0;
+    }
+
+    .fold-block summary {
+      font-weight: bold;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
 
-  <h1>📘 英文聽寫練習</h1>
-
-  <div class="video-input-group">
-    <input type="text" id="video-url" placeholder="貼上影片網址（YouTube / Bilibili）">
-    <button id="load-video">↵</button>
-  </div>
+  <h1>📘 英文聽寫子頁</h1>
 
   <div id="video-container">
     <!-- 影片將載入於此 -->
   </div>
 
-  <h2>📝 筆記區</h2>
-  <textarea class="note-area" placeholder="在這裡輸入筆記..."></textarea>
+  <h2>🛠️ 工具列</h2>
+  <div class="toolbar">
+    <button onclick="wrapSelection('<b>', '</b>')">粗體</button>
+    <button onclick="wrapSelection('<i>', '</i>')">斜體</button>
+    <button onclick="wrapSelection('<u>', '</u>')">底線</button>
+    <button onclick="wrapSelection('<span class=\\\"custom-strike\\\">', '</span>')">刪除線</button>
+    <button onclick="insertFold()">插入折疊區塊</button>
+    <button onclick="wrapSelection('<span style=\\\"color:red\\\">', '</span>')">紅色</button>
+    <button onclick="wrapSelection('<span style=\\\"color:blue\\\">', '</span>')">藍色</button>
+    <button onclick="wrapSelection('<span style=\\\"color:gold\\\">', '</span>')">黃色</button>
+    <button onclick="insertTitle()">📘 聽寫標題</button>
+    <button onclick="insertTimestamp()">⏱️ 時間標記</button>
+  </div>
 
-  <h2>✂️ 刪除線範例</h2>
-  <p>這是一段 <span class="custom-strike">被刪除的文字</span>，底線是綠色，刪除線是紅色。</p>
+  <textarea id="note" class="note-area" placeholder="在這裡輸入筆記..."></textarea>
 
   <script>
-    document.getElementById("load-video").addEventListener("click", () => {
-      const url = document.getElementById("video-url").value.trim();
-      const container = document.getElementById("video-container");
-      container.innerHTML = "";
+    function wrapSelection(before, after) {
+      const textarea = document.getElementById("note");
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const selected = textarea.value.substring(start, end);
+      const newText = before + selected + after;
+      textarea.setRangeText(newText, start, end, "end");
+    }
 
-      if (url.includes("youtube.com") || url.includes("youtu.be")) {
-        const videoId = url.split("v=")[1]?.split("&")[0] || url.split("/").pop();
-        container.innerHTML = `<iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
-      } else if (url.includes("bilibili.com")) {
-        container.innerHTML = `<p>請手動開啟 Bilibili 影片：<a href="${url}" target="_blank">${url}</a></p>`;
-      } else {
-        container.innerHTML = `<p>無法辨識的影片網址。</p>`;
-      }
-    });
+    function insertFold() {
+      const block = `<details class="fold-block"><summary>折疊區塊</summary>\n內容...\n</details>\n`;
+      insertAtCursor(block);
+    }
+
+    function insertTitle() {
+      const today = new Date().toISOString().slice(0, 10);
+      insertAtCursor(`📘 ${today} 聽寫標題\n`);
+    }
+
+    function insertTimestamp() {
+      const now = new Date();
+      const time = now.toLocaleTimeString("zh-TW", { hour: '2-digit', minute: '2-digit' });
+      insertAtCursor(`⏱️ ${time}\n`);
+    }
+
+    function insertAtCursor(text) {
+      const textarea = document.getElementById("note");
+      const start = textarea.selectionStart;
+      textarea.setRangeText(text, start, start, "end");
+    }
+
+    // 影片載入邏輯（從主頁傳入網址）
+    const params = new URLSearchParams(window.location.search);
+    const videoURL = decodeURIComponent(params.get("video") || "");
+    const container = document.getElementById("video-container");
+
+    if (videoURL.includes("youtube.com") || videoURL.includes("youtu.be")) {
+      const videoId = videoURL.split("v=")[1]?.split("&")[0] || videoURL.split("/").pop();
+      container.innerHTML = `<iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+    } else if (videoURL.includes("bilibili.com")) {
+      container.innerHTML = `<p>請手動開啟 Bilibili 影片：<a href="${videoURL}" target="_blank">${videoURL}</a></p>`;
+    } else {
+      container.innerHTML = `<p>無法辨識的影片網址。</p>`;
+    }
   </script>
 
 </body>
