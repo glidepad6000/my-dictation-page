@@ -144,10 +144,15 @@
     function wrapSelection(before, after) {
       const textarea = document.getElementById("note");
       if (!textarea) return;
+
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
       const selected = textarea.value.substring(start, end);
-      const newText = before + selected + after;
+
+      const newText = selected
+        ? before + selected + after
+        : before + after;
+
       textarea.setRangeText(newText, start, end, "end");
     }
 
