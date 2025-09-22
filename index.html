@@ -150,122 +150,130 @@
     </div>
     <div id="note" class="note-area" contenteditable="true"></div>
   </div>
+<script>
+  const note = document.getElementById("note");
 
-  <script>
-    const note = document.getElementById("note");
+  function toggleFormat(command) {
+    document.execCommand(command);
+    updateToolbarState();
+  }
 
-    function toggleFormat(command) {
-      document.execCommand(command);
-      updateToolbarState();
-    }
+  function insertCustomStrike() {
+    const span = document.createElement("span");
+    span.className = "custom-strike";
+    span.textContent = getSelectionText() || "\u200B";
+    insertNode(span);
+    updateToolbarState();
+  }
 
-    function insertCustomStrike() {
-      const span = document.createElement("span");
-      span.className = "custom-strike";
-      span.textContent = getSelectionText() || "\u200B";
-      insertNode(span);
-      updateToolbarState();
-    }
+  function insertColor(color) {
+    const span = document.createElement("span");
+    span.style.color = color;
+    span.textContent = getSelectionText() || "\u200B";
+    insertNode(span);
+    updateToolbarState();
+  }
 
-    function insertColor(color) {
-      const span = document.createElement("span");
-      span.style.color = color;
-      span.textContent = getSelectionText() || "\u200B";
-      insertNode(span);
-      updateToolbarState();
-    }
+  function insertFold() {
+    const details = document.createElement("details");
+    details.className = "fold-block";
+    const summary = document.createElement("summary");
+    summary.textContent = "折疊區塊";
+    details.appendChild(summary);
+    details.appendChild(document.createTextNode("內容..."));
+    note.appendChild(details); // 強制插入在聽寫區最外層
 
-    function insertFold() {
-      const details = document.createElement("details");
-      details.className = "fold-block";
-      const summary = document.createElement("summary");
-      summary.textContent = "折疊區塊";
-      details.appendChild(summary);
-      details.appendChild(document.createTextNode("內容..."));
-      note.appendChild(details); // 強制插入到聽寫區最外層
+    const range = document.createRange();
+    range.selectNodeContents(details);
+    range.collapse(false);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
 
-      const range = document.createRange();
-      range.selectNodeContents(details);
-      range.collapse(false);
-      const sel = window.getSelection();
-      sel.removeAllRanges();
-      sel.addRange(range);
-    }
+  function getSelectionText() {
+    const sel = window.getSelection();
+    return sel && sel.toString();
+  }
 
-    function getSelectionText() {
-      const sel = window.getSelection();
-      return sel && sel.toString();
-    }
+  function insertNode(node) {
+    const sel = window.getSelection();
+    if (!sel.rangeCount) return;
+    const range = sel.getRangeAt(0);
+    range.deleteContents();
+    range.insertNode(node);
+    range.setStartAfter(node);
+    range.setEndAfter(node);
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
 
-    function insertNode(node) {
-      const sel = window.getSelection();
-      if (!sel.rangeCount) return;
-      const range = sel.getRangeAt(0);
-      range.deleteContents();
-      range.insertNode(node);
-      range.setStartAfter(node);
-      range.setEndAfter(node);
-      sel.removeAllRanges();
-      sel.addRange(range);
-    }
-
-    function updateToolbarState() {
-      const commands = {
-        bold: "btn-bold",
-        italic: "btn-italic",
-        underline: "btn-underline"
-      };
-      for (const cmd in commands) {
-        const btn = document.getElementById(commands[cmd]);
-        if (document.queryCommandState(cmd)) {
-          btn.classList.add("active");
-        } else {
-          btn.classList.remove("active");
-        }
-      }
-
-      const sel = window.getSelection();
-      if (!sel.rangeCount) return;
-      const node = sel.anchorNode?.parentElement;
-      const colorMap = {
-        red: "btn-red",
-        blue: "btn-blue",
-        gold: "btn-gold"
-      };
-      for (const color in colorMap) {
-        const btn = document.getElementById(colorMap[color]);
-        const computed = node ? window.getComputedStyle(node).color : "";
-        if (computed.includes(color)) {
-          btn.classList.add("active");
-        } else {
-          btn.classList.remove("active");
-        }
-      }
-
-      const strikeBtn = document.getElementById("btn-strike");
-      if (node?.classList?.contains("custom-strike")) {
-        strikeBtn.classList.add("active");
+  function updateToolbarState() {
+    const commands = {
+      bold: "btn-bold",
+      italic: "btn-italic",
+      underline: "btn-underline"
+    };
+    for (const cmd in commands) {
+      const btn = document.getElementById(commands[cmd]);
+      if (document.queryCommandState(cmd)) {
+        btn.classList.add("active");
       } else {
-        strikeBtn.classList.remove("active");
+        btn.classList.remove("active");
       }
     }
 
-    note.addEventListener("input", () => {
-      localStorage.setItem("dictation-note", note.innerHTML);
-    });
+    const sel = window.getSelection();
+    if (!sel.rangeCount) return;
+    const node = sel.anchorNode?.parentElement;
+    const colorMap = {
+      red: "btn-red",
+      blue: "btn-blue",
+      gold: "btn-gold"
+    };
+    for (const color in colorMap) {
+      const btn = document.getElementById(colorMap[color]);
+      const computed = node ? window.getComputedStyle(node).color : "";
+      if (computed.includes(color)) {
+        btn.classList.add("active");
+      } else {
+        btn.classList.remove("active");
+      }
+    }
 
-    window.addEventListener("load", () => {
-      const saved = localStorage.getItem("dictation-note");
-      if (saved) note.innerHTML = saved;
-    });
+    const strikeBtn = document.getElementById("btn-strike");
+    if (node?.classList?.contains("custom-strike")) {
+      strikeBtn.classList.add("active");
+    } else {
+      strikeBtn.classList.remove("active");
+    }
+  }
 
-    document.addEventListener("selectionchange", updateToolbarState);
+  note.addEventListener("input", () => {
+    localStorage.setItem("dictation-note", note.innerHTML);
+  });
 
-    document.getElementById("load-video").addEventListener("click", () => {
-      const url = document.getElementById("video-url").value.trim();
-      const container = document.getElementById("video-container");
-      container.innerHTML = "";
+  window.addEventListener("load", () => {
+    const saved = localStorage.getItem("dictation-note");
+    if (saved) note.innerHTML = saved;
+  });
 
-      if (url.includes("youtube.com") || url.includes("youtu.be")) {
-        const videoId = url.split("v=")[1]?.split("&")[0] || url.split("/").pop();
-        container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0"
+  document.addEventListener("selectionchange", updateToolbarState);
+
+  document.getElementById("load-video").addEventListener("click", () => {
+    const url = document.getElementById("video-url").value.trim();
+    const container = document.getElementById("video-container");
+    container.innerHTML = "";
+
+    if (url.includes("youtube.com") || url.includes("youtu.be")) {
+      const videoId = url.split("v=")[1]?.split("&")[0] || url.split("/").pop();
+      container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+    } else if (url.includes("bilibili.com")) {
+      window.open(url, "_blank");
+    } else {
+      container.innerHTML = `<p>不支援的影片網址。</p>`;
+    }
+  });
+</script>
+</body>
+</html>
