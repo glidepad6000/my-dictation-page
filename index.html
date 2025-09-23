@@ -282,6 +282,23 @@
     });
 
     document.addEventListener("selectionchange", updateToolbarState);
+
+    let selectedBlock = null;
+
+    document.getElementById('note-content').addEventListener('click', e => {
+    const blocks = document.querySelectorAll('.fold-block');
+    blocks.forEach(b => b.classList.remove('selected')); // 清除所有選取狀態
+
+    const block = e.target.closest('.fold-block');
+    if (block) {
+      block.classList.add('selected'); // 標記目前選取的區塊
+      selectedBlock = block;           // 儲存選取的區塊供後續使用
+      log('✅ 已選取折疊區');
+    } else {
+      selectedBlock = null;
+    }
+  });
+
     document.getElementById('delete-fold').onclick = () => {
   // 顯示確認與取消按鈕
 };
