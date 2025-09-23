@@ -58,7 +58,9 @@
     }
     #video-container iframe {
       width: 100%;
-      height: 315px;
+  	aspect-ratio: 16 / 9;
+  	border: none;
+  	display: block;
     }
     .toolbar {
       display: flex;
@@ -306,28 +308,29 @@
 
     document.addEventListener("selectionchange", updateToolbarState);
 
- document.getElementById("load-video").addEventListener("click", () => {
-  	const url = document.getElementById("video-url").value.trim();
-  	const container = document.getElementById("video-container");
-  	container.innerHTML = "";
+document.getElementById("load-video").addEventListener("click", () => {
+  const url = document.getElementById("video-url").value.trim();
+  const container = document.getElementById("video-container");
+  container.innerHTML = "";
 
-  	if (url.includes("youtube.com") || url.includes("youtu.be")) {
-    	  const videoId = url.includes("v=")
-      		? url.split("v=")[1].split("&")[0]
-      		: url.split("/").pop();
-    	  container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
-  	} else if (url.includes("bilibili.com")) {
-    	  const match = url.match(/\/video\/(BV\w+)/);
-    	  if (match) {
-      		const bvid = match[1];
-      		container.innerHTML = `<iframe src="https://player.bilibili.com/player.html?bvid=${bvid}&autoplay=0" frameborder="0" allowfullscreen></iframe>`;
+  if (url.includes("youtube.com") || url.includes("youtu.be")) {
+    const videoId = url.includes("v=")
+      ? url.split("v=")[1].split("&")[0]
+      : url.split("/").pop();
+    container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>`;
+  } else if (url.includes("bilibili.com")) {
+    const match = url.match(/\\/video\\/(BV\\w+)/);
+    if (match) {
+      const bvid = match[1];
+      container.innerHTML = `<iframe src="https://player.bilibili.com/player.html?bvid=${bvid}&autoplay=0" allowfullscreen></iframe>`;
     } else {
-      		container.innerHTML = `<p>⚠️ 無法解析 Bilibili 網址。</p>`;
+      container.innerHTML = `<p>⚠️ 無法解析 Bilibili 網址。</p>`;
     }
   } else {
-    		container.innerHTML = `<p>不支援的影片網址。</p>`;
+    container.innerHTML = `<p>不支援的影片網址。</p>`;
   }
 });
+
 
 
   </script>
