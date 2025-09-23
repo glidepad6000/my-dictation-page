@@ -85,15 +85,14 @@
     <button onclick="exec('underline')">U̲</button>
     <button onclick="exec('strikeThrough')">S̶</button>
     <button id="add-fold">+</button>
-    <button id="remove-fold">−</button>
     <button class="rgb-btn" data-color="#ff0000">🔴</button>
     <button class="rgb-btn" data-color="#00ff00">🟢</button>
     <button class="rgb-btn" data-color="#0000ff">🔵</button>
+    <button id="remove-fold">−</button>
   </div>
 
   <!-- Note Content -->
   <div id="note-content" contenteditable="true">
-
 這是前文內容
 <div class="fold-block folded">
   <div class="fold-header">Fold</div>
@@ -105,23 +104,60 @@
 這是展開後的中文內容
 這是下一段內容</div>
 </div>
-
   </div>
 
-  <!-- JS Patch: 修復格式化功能 -->
+  <!-- JS Patch -->
   <script>
     function exec(command) {
       const note = document.getElementById('note-content');
       note.focus();
 
       const selection = window.getSelection();
-      if (!selection || selection.rangeCount === 0) return;
+      if (!selection || selection.rangeCount === 0) {
+        console.warn('❌ 沒有選取範圍');
+        return;
+      }
 
       const range = selection.getRangeAt(0);
-      if (!note.contains(range.commonAncestorContainer)) return;
+      if (!note.contains(range.commonAncestorContainer)) {
+        console.warn('❌ 選取範圍不在 note-content 內');
+        return;
+      }
 
-      document.execCommand(command, false, null);
+      const success = document.execCommand(command, false, null);
+      console.log(`✅ 執行 ${command}：${success}`);
     }
+
+    // 新增折疊區（無空行）
+    document.getElementById('add-fold').onclick = () => {
+      const block = document.createElement('div');
+      block.className = 'fold-block folded';
+
+      const header = document.createElement('div');
+      header.className = 'fold-header';
+      header.textContent = 'Fold';
+
+      const content = document.createElement('div');
+      content.className = 'fold-content';
+      content.textContent = '這是新建的折疊內容'; // 無空行
+
+      block.appendChild(header);
+      block.appendChild(content);
+
+      const note = document.getElementById('note-content');
+      note.appendChild(block);
+    };
+
+    // 刪除折疊區（含確認提示）
+    document.getElementById('remove-fold').onclick = () => {
+      if (!confirm('確定要刪除最後一個折疊區嗎？')) return;
+
+      const blocks = document.querySelectorAll('.fold-block');
+      if (blocks.length === 0) return;
+
+      const last = blocks[blocks.length - 1];
+      last.remove();
+    };
   </script>
 
 </body>
