@@ -4,60 +4,84 @@
   <meta charset="UTF-8">
   <title>側邊筆記模組</title>
   <style>
-    /* 側邊欄樣式 */
-    #note-sidebar {
-      position: fixed;
-      top: 0;
-      right: 0;
-      width: 300px;
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      color: #eee;
+      font-family: monospace;
+      font-size: 16px;
       height: 100vh;
-      background: #f9f9f9;
-      border-left: 1px solid #ccc;
-      box-shadow: -2px 0 5px rgba(0,0,0,0.1);
-      transition: transform 0.3s ease;
-      z-index: 9999;
+      overflow: hidden;
     }
-    #note-sidebar.collapsed {
-      transform: translateX(100%);
+
+    #toolbar {
+      display: flex;
+      gap: 8px;
+      padding: 8px;
+      background: #111;
+      border-bottom: 1px solid #333;
     }
-    #toggle-note {
-      position: absolute;
-      left: -40px;
-      top: 10px;
-      width: 30px;
-      height: 30px;
-      background: #007bff;
-      color: white;
+
+    #toolbar button {
+      background: #333;
+      color: #eee;
       border: none;
-      border-radius: 4px 0 0 4px;
+      padding: 4px 8px;
+      border-radius: 4px;
       cursor: pointer;
     }
+
+    #toolbar button:hover {
+      background: #555;
+    }
+
     #note-content {
       padding: 10px;
-      height: calc(100vh - 20px);
+      height: calc(100vh - 48px);
       overflow-y: auto;
-      font-family: monospace;
       white-space: pre-wrap;
+      outline: none;
+    }
+
+    .fold-block {
+      margin: 10px 0;
+      background: #111;
+      border: 1px solid #444;
+      border-radius: 4px;
+      padding: 6px;
+    }
+
+    .fold-block summary {
+      cursor: pointer;
+      font-weight: bold;
+      color: #ffcc00;
+    }
+
+    .fold-content {
+      padding: 6px;
+      color: #eee;
+    }
+
+    ::selection {
+      background: #444;
+      color: #fff;
     }
   </style>
 </head>
 <body>
 
-  <!-- 側邊筆記模組 -->
-  <div id="note-sidebar" class="collapsed">
-    <button id="toggle-note">📝</button>
-    <div id="note-content" contenteditable="true" spellcheck="false"></div>
+  <!-- 工具列 -->
+  <div id="toolbar">
+    <button id="insert-fold">插入折疊區塊</button>
+    <button id="delete-fold">刪除選取的折疊區</button>
   </div>
 
-  <script>
-    const sidebar = document.getElementById("note-sidebar");
-    const toggleBtn = document.getElementById("toggle-note");
-    const noteContent = document.getElementById("note-content");
+  <!-- 筆記區 -->
+  <div id="note-content" contenteditable="true" spellcheck="false"></div>
 
-    // 展開 / 收合
-    toggleBtn.addEventListener("click", () => {
-      sidebar.classList.toggle("collapsed");
-    });
+  <script>
+    const noteContent = document.getElementById("note-content");
 
     // 自動儲存筆記
     noteContent.addEventListener("input", () => {
@@ -68,6 +92,27 @@
     window.addEventListener("DOMContentLoaded", () => {
       const saved = localStorage.getItem("sideNote");
       if (saved) noteContent.innerHTML = saved;
+    });
+
+    // 插入折疊區塊
+    document.getElementById("insert-fold").addEventListener("click", () => {
+      const block = document.createElement("div");
+      block.className = "fold-block";
+      block.innerHTML = `
+        <details open>
+          <summary>折疊區塊</summary>
+          <div class="fold-content" contenteditable="true">請輸入內容...</div>
+        </details>`;
+      noteContent.appendChild(block);
+    });
+
+    // 刪除選取的折疊區塊
+    document.getElementById("delete-fold").addEventListener("click", () => {
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return;
+      const range = selection.getRangeAt(0);
+      const foldBlock = range.startContainer.closest(".fold-block");
+      if (foldBlock) foldBlock.remove();
     });
   </script>
 
