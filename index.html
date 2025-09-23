@@ -70,7 +70,7 @@
     }
 
     .fold-content br {
-      line-height: 0.5em;
+      display: none;
     }
 
     ::selection {
@@ -119,12 +119,12 @@
       console.log(`[Monitor] Format applied: ${cmd}`);
     }
 
-    // Add fold block
+    // Add fold block (collapsed by default)
     document.getElementById("add-fold").addEventListener("click", () => {
       const block = document.createElement("div");
       block.className = "fold-block";
       block.innerHTML = `
-        <details open>
+        <details>
           <summary>Fold</summary>
           <div class="fold-content" contenteditable="true">...</div>
         </details>`;
