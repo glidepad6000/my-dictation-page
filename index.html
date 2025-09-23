@@ -1,326 +1,137 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>英文聽寫練習</title>
   <style>
     body {
-      margin: 0;
       font-family: sans-serif;
-      display: flex;
-      flex-direction: row;
-      height: 100vh;
-      overflow: hidden;
+      margin: 20px;
     }
-    h2 {
-      font-size: 1.2em;
-      margin: 0 0 10px 0;
-    }
-    .left-panel, .right-panel {
-      padding: 0 20px 20px 20px;
-      box-sizing: border-box;
-    }
-    .left-panel {
-      flex-basis: 66.6666%;
-      max-width: 66.6666%;
-      background: #f0f0f0;
-      border-right: 1px solid #ccc;
-      display: flex;
-      flex-direction: column;
-    }
-    .right-panel {
-      flex-basis: 33.3333%;
-      max-width: 33.3333%;
-      background: #fff;
-      display: flex;
-      flex-direction: column;
-    }
-    .video-input-group {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 20px;
-    }
-    #video-url, #load-video {
-      height: 36px;
+    #videoInput {
+      width: 100%;
+      padding: 8px;
       font-size: 16px;
+    }
+    #videoContainer {
+      margin-top: 20px;
+    }
+    iframe {
+      width: 640px;
+      height: 360px;
+      border: none;
+    }
+    #dictationArea {
+      margin-top: 40px;
+    }
+    #toolbar button {
+      margin-right: 5px;
+      margin-bottom: 5px;
+    }
+    #editor {
       border: 1px solid #ccc;
-      background: #fff;
-    }
-    #video-url {
-      flex: 1;
-      padding: 6px 10px;
-    }
-    #load-video {
-      padding: 0 12px;
-      font-size: 20px;
-      cursor: pointer;
-    }
-    #video-container iframe {
-      width: 100%;
-      height: 315px;
-    }
-    .toolbar {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-bottom: 10px;
-    }
-    .toolbar-row {
-      display: flex;
-      gap: 8px;
-    }
-    .toolbar button {
-      padding: 6px 10px;
-      font-size: 14px;
-      cursor: pointer;
-      border: 1px solid #ccc;
-      background: #eee;
-    }
-    .toolbar button.active {
-      background-color: #cce5ff;
-      border-color: #66b3ff;
-    }
-    .note-area {
-      flex: 1;
-      width: 100%;
       padding: 10px;
+      min-height: 200px;
       font-size: 16px;
-      border: 1px solid #ccc;
-      background: #fff;
-      overflow-y: auto;
-    }
-    .fold-block {
-      border: 1px dashed #aaa;
-      padding: 6px;
-      margin: 6px 0;
-      background: #f0f0f0;
-      font-size: 16px;
-      line-height: 1.6;
-      font-weight: normal;
-      font-style: normal;
-      color: #000;
-    }
-    .fold-block * {
-      font-size: 16px !important;
-      line-height: 1.6 !important;
-    }
-    .fold-block summary {
-      font-weight: bold;
-      cursor: pointer;
+      line-height: 1.5;
     }
   </style>
 </head>
 <body>
-  <div class="left-panel">
-    <h2>🎬 影片區</h2>
-    <div class="video-input-group">
-      <input type="text" id="video-url" placeholder="貼上影片網址（YouTube / Bilibili）">
-      <button id="load-video">↵</button>
-    </div>
-    <div id="video-container"></div>
-  </div>
-  <div class="right-panel">
+
+  <h2>🎬 影片區</h2>
+  <input id="videoInput" type="text" placeholder="貼上 Bilibili 或 YouTube 影片網址後按 Enter">
+  <div id="videoContainer"></div>
+
+  <div id="dictationArea">
     <h2>📝 聽寫區</h2>
-    <div class="toolbar">
-      <div class="toolbar-row">
-        <button id="btn-bold" onclick="toggleFormat('bold')">粗體</button>
-        <button id="btn-italic" onclick="toggleFormat('italic')">斜體</button>
-        <button id="btn-underline" onclick="toggleCustomFormat('underline')">底線</button>
-        <button id="btn-strike" onclick="toggleCustomFormat('strike')">刪除線</button>
-        <button onclick="insertFold()">插入折疊區塊</button>
-      </div>
-      <div class="toolbar-row">
-        <button onclick="toggleColor('red', 'rgb(255, 0, 0)')" id="btn-red">🔴</button>
-        <button onclick="toggleColor('pink', 'rgb(255, 192, 203)')" id="btn-pink">🩷</button>
-        <button onclick="toggleColor('gold', 'rgb(255, 215, 0)')" id="btn-gold">🟡</button>
-        <button onclick="deleteSelectedFoldBlock()">刪除選取的折疊區</button>
-      </div>
+    <div id="toolbar">
+      <button onclick="format('bold')">粗體</button>
+      <button onclick="format('italic')">斜體</button>
+      <button onclick="format('underline')">底線</button>
+      <button onclick="format('strikeThrough')">刪除線</button>
+      <button onclick="insertFold()">插入折疊區塊</button>
+      <button onclick="removeFold()">刪除選取的折疊區</button>
+      <button onclick="insertColor('🔴')">🔴</button>
+      <button onclick="insertColor('🩷')">🩷</button>
+      <button onclick="insertColor('🟡')">🟡</button>
     </div>
-    <div id="note" class="note-area" contenteditable="true"></div>
+    <div id="editor" contenteditable="true">
+      在此輸入聽寫內容...
+    </div>
   </div>
+
   <script>
-    const note = document.getElementById("note");
+    // 🎬 影片嵌入邏輯
+    const input = document.getElementById('videoInput');
+    const container = document.getElementById('videoContainer');
 
-    function toggleFormat(command) {
-      document.execCommand(command);
-      note.focus();
-      updateToolbarState();
-    }
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const url = input.value.trim();
 
-    function toggleCustomFormat(type) {
-      const sel = window.getSelection();
-      if (!sel.rangeCount) return;
+        const biliMatch = url.match(/bilibili\.com\/video\/(BV\w+)/);
+        if (biliMatch) {
+          const bvid = biliMatch[1];
+          container.innerHTML = `
+            <iframe src="https://player.bilibili.com/player.html?bvid=${bvid}&autoplay=0"
+                    allowfullscreen></iframe>`;
+          return;
+        }
 
-      const range = sel.getRangeAt(0);
-      const selectedText = range.toString();
-      const container = range.commonAncestorContainer;
-      const parent = container.nodeType === 1 ? container : container.parentElement;
-      if (!parent) return;
+        const ytMatch = url.match(/(?:youtube\.com\/watch\\?v=|youtu\\.be\\/)([\\w-]{11})/);
+        if (ytMatch) {
+          const vid = ytMatch[1];
+          container.innerHTML = `
+            <iframe src="https://www.youtube.com/embed/${vid}"
+                    allowfullscreen></iframe>`;
+          return;
+        }
 
-      const style = window.getComputedStyle(parent);
-      const hasUnderline = style.textDecorationLine.includes("underline");
-      const hasStrike = style.textDecorationLine.includes("line-through");
-
-      const shouldRemove =
-        (type === "underline" && hasUnderline) ||
-        (type === "strike" && hasStrike);
-
-      if (shouldRemove) {
-        parent.style.textDecoration = "none";
-        parent.style.textDecorationColor = "";
-        updateToolbarState();
-        return;
+        container.innerHTML = `<p style="color:red;">⚠️ 無法辨識的影片網址</p>`;
       }
+    });
 
-      const span = document.createElement("span");
-      span.textContent = selectedText || "\u200B";
-      if (type === "underline") {
-        span.style.textDecoration = "underline";
-        span.style.textDecorationColor = "green";
-        span.style.color = "black";
-      } else if (type === "strike") {
-        span.style.textDecoration = "line-through";
-        span.style.textDecorationColor = "red";
-        span.style.color = "black";
-      }
-
-      range.deleteContents();
-      range.insertNode(span);
-      const after = document.createTextNode("\u200B");
-      span.after(after);
-      range.setStart(after, 1);
-      range.collapse(true);
-      sel.removeAllRanges();
-      sel.addRange(range);
-
-      note.focus();
-      updateToolbarState();
-    }
-
-    function toggleColor(colorName, rgbValue) {
-      const current = getColorState();
-      if (current === rgbValue) {
-        document.execCommand("foreColor", false, "black");
-      } else {
-        document.execCommand("foreColor", false, colorName);
-      }
-      note.focus();
-      updateToolbarState();
-    }
-
-    function getColorState() {
-      const sel = window.getSelection();
-      if (!sel.rangeCount) return "";
-      const node = sel.anchorNode?.parentElement;
-      if (!node) return "";
-      return window.getComputedStyle(node).color.toLowerCase();
-    }
-
-    function hasDecoration(type) {
-      const sel = window.getSelection();
-      if (!sel.rangeCount) return false;
-      const node = sel.anchorNode?.parentElement;
-      if (!node) return false;
-      const style = window.getComputedStyle(node);
-      return style.textDecorationLine.includes(type);
+    // 📝 聽寫格式工具列功能
+    function format(command) {
+      document.execCommand(command, false, null);
     }
 
     function insertFold() {
-      const details = document.createElement("details");
-      details.className = "fold-block";
-      const summary = document.createElement("summary");
-      summary.textContent = "折疊區塊";
-      details.appendChild(summary);
-      details.appendChild(document.createTextNode("內容..."));
-      note.appendChild(details);
-
-      const range = document.createRange();
-      range.selectNodeContents(details);
-      range.collapse(false);
-      const sel = window.getSelection();
-      sel.removeAllRanges();
-      sel.addRange(range);
-      note.focus();
-    }
-
-    function deleteSelectedFoldBlock() {
-      const sel = window.getSelection();
-      if (!sel.rangeCount) return;
-
-      const range = sel.getRangeAt(0);
-      const container = range.commonAncestorContainer;
-      const fold = container.nodeType === 1
-        ? container.closest(".fold-block")
-        : container.parentElement?.closest(".fold-block");
-
-      if (fold) {
-        fold.remove();
-        sel.removeAllRanges();
-        note.focus();
+      const selection = window.getSelection();
+      if (selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const fold = document.createElement('details');
+        const summary = document.createElement('summary');
+        summary.textContent = '🔽 摺疊內容';
+        fold.appendChild(summary);
+        const content = document.createElement('div');
+        content.innerHTML = range.toString();
+        fold.appendChild(content);
+        range.deleteContents();
+        range.insertNode(fold);
       }
     }
 
-    function updateToolbarState() {
-      const commands = {
-        bold: "btn-bold",
-        italic: "btn-italic"
-      };
-      for (const cmd in commands) {
-        const btn = document.getElementById(commands[cmd]);
-        if (document.queryCommandState(cmd)) {
-          btn.classList.add("active");
-        } else {
-          btn.classList.remove("active");
-        }
-      }
-
-      document.getElementById("btn-underline").classList.toggle("active", hasDecoration("underline"));
-      document.getElementById("btn-strike").classList.toggle("active", hasDecoration("line-through"));
-
-      const colorState = getColorState();
-      const colorMap = {
-        "rgb(255, 0, 0)": "btn-red",
-        "rgb(255, 192, 203)": "btn-pink",
-        "rgb(255, 215, 0)": "btn-gold"
-      };
-      for (const rgb in colorMap) {
-        const btn = document.getElementById(colorMap[rgb]);
-        if (colorState === rgb) {
-          btn.classList.add("active");
-        } else {
-          btn.classList.remove("active");
-        }
+    function removeFold() {
+      const selection = window.getSelection();
+      if (selection.rangeCount > 0) {
+        const node = selection.anchorNode;
+        const fold = node.closest('details');
+        if (fold) fold.remove();
       }
     }
 
-    note.addEventListener("input", () => {
-      localStorage.setItem("dictation-note", note.innerHTML);
-    });
-
-    window.addEventListener("load", () => {
-      const saved = localStorage.getItem("dictation-note");
-      if (saved) note.innerHTML = saved;
-    });
-
-    document.addEventListener("selectionchange", updateToolbarState);
-
-    document.getElementById("load-video").addEventListener("click", () => {
-      const url = document.getElementById("video-url").value.trim();
-      const container = document.getElementById("video-container");
-      container.innerHTML = "";
-
-      if (url.includes("youtube.com") || url.includes("youtu.be")) {
-        const videoId = url.includes("v=")
-          ? url.split("v=")[1].split("&")[0]
-          : url.split("/").pop();
-        container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
-      } else if (url.includes("bilibili.com")) {
-        window.open(url, "_blank");
-      } else {
-        container.innerHTML = `<p>不支援的影片網址。</p>`;
+    function insertColor(symbol) {
+      const selection = window.getSelection();
+      if (selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        range.deleteContents();
+        range.insertNode(document.createTextNode(symbol));
       }
-    });
+    }
   </script>
+
 </body>
 </html>
