@@ -285,35 +285,40 @@
 
     let selectedBlock = null;
 
-    document.getElementById('note-content').addEventListener('click', e => {
-    const blocks = document.querySelectorAll('.fold-block');
-    blocks.forEach(b => b.classList.remove('selected')); // 清除所有選取狀態
+document.getElementById('note-content').addEventListener('click', e => {
+  const blocks = document.querySelectorAll('.fold-block');
+  blocks.forEach(b => b.classList.remove('selected'));
+  const block = e.target.closest('.fold-block');
+  if (block) {
+    block.classList.add('selected');
+    selectedBlock = block;
+    log('✅ 已選取折疊區');
+  }
+});
 
-    const block = e.target.closest('.fold-block');
-    if (block) {
-      block.classList.add('selected'); // 標記目前選取的區塊
-      selectedBlock = block;           // 儲存選取的區塊供後續使用
-      log('✅ 已選取折疊區');
-    } else {
-      selectedBlock = null;
-    }
-  });
-
-    document.getElementById('delete-fold').onclick = () => {
-  // 顯示確認與取消按鈕
+document.getElementById('delete-fold').onclick = () => {
+  if (!selectedBlock) return alert('請先點選要刪除的折疊區');
+  document.getElementById('confirm-delete').style.display = 'inline-block';
+  document.getElementById('cancel-delete').style.display = 'inline-block';
+  log('⚠️ 請確認是否刪除選取的折疊區');
 };
 
-    document.getElementById('confirm-delete').onclick = () => {
+document.getElementById('confirm-delete').onclick = () => {
   if (selectedBlock) {
-    selectedBlock.remove(); // ✅ 這裡就是原本函式的核心邏輯
+    selectedBlock.remove();
     selectedBlock = null;
     log('✅ 已刪除折疊區');
   }
-  // 隱藏按鈕
+  document.getElementById('confirm-delete').style.display = 'none';
+  document.getElementById('cancel-delete').style.display = 'none';
 };
 
-    document.getElementById('cancel-delete').onclick = () => {
-  // 清除選取、隱藏按鈕
+document.getElementById('cancel-delete').onclick = () => {
+  selectedBlock = null;
+  document.querySelectorAll('.fold-block').forEach(b => b.classList.remove('selected'));
+  document.getElementById('confirm-delete').style.display = 'none';
+  document.getElementById('cancel-delete').style.display = 'none';
+  log('🚫 已取消刪除操作');
 };
 
 
