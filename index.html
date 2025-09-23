@@ -106,8 +106,9 @@
     <button class="rgb-btn" data-color="#ff0000" style="background:#ff0000">🔴</button>
     <button class="rgb-btn" data-color="#00ff00" style="background:#00ff00">🟢</button>
     <button class="rgb-btn" data-color="#0000ff" style="background:#0000ff">🔵</button>
-    <button id="remove-fold">−</button>
-    <button id="cancel-remove" title="取消刪除">✕</button>
+    <button id="delete-fold" title="刪除折疊區">✕</button>
+    <button id="confirm-delete" style="display:none">✅</button>
+    <button id="cancel-delete" style="display:none">🚫</button>
   </div>
 
   <!-- Note Content -->
@@ -123,19 +124,10 @@
     function exec(command) {
       const note = document.getElementById('note-content');
       note.focus();
-
       const selection = window.getSelection();
-      if (!selection || selection.rangeCount === 0) {
-        log('❌ 沒有選取範圍');
-        return;
-      }
-
+      if (!selection || selection.rangeCount === 0) return log('❌ 沒有選取範圍');
       const range = selection.getRangeAt(0);
-      if (!note.contains(range.commonAncestorContainer)) {
-        log('❌ 選取範圍不在 note-content 內');
-        return;
-      }
-
+      if (!note.contains(range.commonAncestorContainer)) return log('❌ 選取範圍不在 note-content 內');
       const success = document.execCommand(command, false, null);
       log(`✅ 執行 ${command}：${success}`);
     }
@@ -167,15 +159,11 @@
       btn.onclick = () => {
         const color = btn.dataset.color;
         const selection = window.getSelection();
-        if (!selection || selection.rangeCount === 0) {
-          log('❌ 沒有選取範圍');
-          return;
-        }
-
+        if (!selection || selection.rangeCount === 0) return log('❌ 沒有選取範圍');
         const range = selection.getRangeAt(0);
         const span = document.createElement('span');
         span.style.color = color;
-        span.style.backgroundColor = '#111'; // 測試顏色對比
+        span.style.backgroundColor = '#111'; // 測試背景對比
         span.appendChild(range.extractContents());
         range.insertNode(span);
         log(`✅ 套用顏色 ${color}`);
@@ -185,26 +173,20 @@
     document.getElementById('add-fold').onclick = () => {
       const block = document.createElement('div');
       block.className = 'fold-block';
-
       const header = document.createElement('div');
       header.className = 'fold-header';
       header.textContent = 'Fold';
-
       const content = document.createElement('div');
       content.className = 'fold-content';
       content.textContent = '這是新建的折疊內容';
-
       block.appendChild(header);
       block.appendChild(content);
-
       block.addEventListener('click', () => {
         block.classList.add('active');
         block.classList.add('selected');
         log('✅ 展開並選取折疊區');
       });
-
-      const note = document.getElementById('note-content');
-      note.appendChild(block);
+      document.getElementById('note-content').appendChild(block);
       log('✅ 新增折疊區');
     };
 
@@ -221,22 +203,29 @@
       }
     });
 
-    document.getElementById('remove-fold').onclick = () => {
-      if (!selectedBlock) {
-        alert('請先點選要刪除的折疊區');
-        return;
-      }
-      if (confirm('確定要刪除選取的折疊區嗎？')) {
+    document.getElementById('delete-fold').onclick = () => {
+      if (!selectedBlock) return alert('請先點選要刪除的折疊區');
+      document.getElementById('confirm-delete').style.display = 'inline-block';
+      document.getElementById('cancel-delete').style.display = 'inline-block';
+      log('⚠️ 請確認是否刪除選取的折疊區');
+    };
+
+    document.getElementById('confirm-delete').onclick = () => {
+      if (selectedBlock) {
         selectedBlock.remove();
         selectedBlock = null;
         log('✅ 已刪除折疊區');
       }
+      document.getElementById('confirm-delete').style.display = 'none';
+      document.getElementById('cancel-delete').style.display = 'none';
     };
 
-    document.getElementById('cancel-remove').onclick = () => {
+    document.getElementById('cancel-delete').onclick = () => {
       selectedBlock = null;
       document.querySelectorAll('.fold-block').forEach(b => b.classList.remove('selected'));
-      log('🚫 已取消選取折疊區');
+      document.getElementById('confirm-delete').style.display = 'none';
+      document.getElementById('cancel-delete').style.display = 'none';
+      log('🚫 已取消刪除操作');
     };
   </script>
 
