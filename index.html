@@ -53,7 +53,7 @@
       border-radius: 2px;
     }
 
-    .fold-block summary {
+    .fold-header {
       padding: 0;
       margin: 0;
       font-size: 14px;
@@ -67,10 +67,7 @@
       font-size: 14px;
       line-height: 1.2;
       color: #eee;
-    }
-
-    .fold-content br {
-      display: none;
+      white-space: pre-line;
     }
 
     ::selection {
@@ -93,119 +90,23 @@
     <button class="rgb-btn" data-color="#00ff00">🟢</button>
     <button class="rgb-btn" data-color="#0000ff">🔵</button>
   </div>
-<!-- 上方折疊區：收緊 -->
-<p>這是前文內容</p>
+
+  <!-- Note Content -->
+  <div id="note-content" contenteditable="true">
+
+這是前文內容
 <div class="fold-block folded">
   <div class="fold-header">Fold</div>
   <div class="fold-content">這是折疊內容</div>
 </div>
-
-<!-- 下方折疊區：展開 -->
 <div class="fold-block expanded">
   <div class="fold-header">Fold</div>
-  <div class="fold-content">
-    ...
-   這是展開後的中文內容
-   這是下一段內容
-  </div>
+  <div class="fold-content">...
+這是展開後的中文內容
+這是下一段內容</div>
 </div>
 
-
-
-  <!-- Note Area -->
-  <div id="note-content" contenteditable="true" spellcheck="false"></div>
-
-  <script>
-    const noteContent = document.getElementById("note-content");
-
-    // Save note
-    noteContent.addEventListener("input", () => {
-      localStorage.setItem("sideNote", noteContent.innerHTML);
-      console.log("[Monitor] Note updated");
-    });
-
-    // Load note
-    window.addEventListener("DOMContentLoaded", () => {
-      const saved = localStorage.getItem("sideNote");
-      if (saved) noteContent.innerHTML = saved;
-      console.log("[Monitor] Note loaded");
-    });
-
-    // Format commands
-    function exec(cmd) {
-      document.execCommand(cmd);
-      console.log(`[Monitor] Format applied: ${cmd}`);
-    }
-
-    // Add fold block (collapsed by default)
-    document.getElementById("add-fold").addEventListener("click", () => {
-      const block = document.createElement("div");
-      block.className = "fold-block";
-      block.innerHTML = `
-        <details>
-          <summary>Fold</summary>
-          <div class="fold-content" contenteditable="true">...</div>
-        </details>`;
-      noteContent.appendChild(block);
-      console.log("[Monitor] Fold block added");
-    });
-
-    // Remove fold block
-    document.getElementById("remove-fold").addEventListener("click", () => {
-      const sel = window.getSelection();
-      if (!sel.rangeCount) return;
-      const range = sel.getRangeAt(0);
-      let node = range.startContainer;
-      while (node && node !== noteContent) {
-        if (node.classList?.contains("fold-block")) {
-          node.remove();
-          console.log("[Monitor] Fold block removed");
-          break;
-        }
-        node = node.parentNode;
-      }
-    });
-
-    // RGB color mixing
-    let rgbMix = [];
-
-    document.querySelectorAll(".rgb-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const color = btn.dataset.color;
-        if (!rgbMix.includes(color)) rgbMix.push(color);
-        console.log(`[Monitor] Color selected: ${color}`);
-        if (rgbMix.length >= 2) {
-          const mixed = mixRGB(rgbMix);
-          document.execCommand("foreColor", false, mixed);
-          console.log(`[Monitor] Mixed color applied: ${mixed}`);
-          rgbMix = [];
-        }
-      });
-    });
-
-    function mixRGB(colors) {
-      const r = colors.includes("#ff0000") ? 255 : 0;
-      const g = colors.includes("#00ff00") ? 255 : 0;
-      const b = colors.includes("#0000ff") ? 255 : 0;
-      return rgbToHex(r, g, b);
-    }
-
-    function rgbToHex(r, g, b) {
-      return "#" + [r, g, b].map(x => x.toString(16).padStart(2, "0")).join("");
-    }
-
-    // Prevent empty lines in fold-content
-    noteContent.addEventListener("keydown", e => {
-      if (e.key === "Enter") {
-        const sel = window.getSelection();
-        const node = sel.anchorNode;
-        if (node && node.closest(".fold-content")) {
-          e.preventDefault();
-          console.log("[Monitor] Enter blocked in fold-content");
-        }
-      }
-    });
-  </script>
+  </div>
 
 </body>
 </html>
