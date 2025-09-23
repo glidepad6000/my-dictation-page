@@ -46,25 +46,31 @@
     }
 
     .fold-block {
-      margin: 6px 0;
-      padding: 4px;
-      background: #111;
+      margin: 0;
+      padding: 0;
       border: 1px solid #444;
-      border-radius: 3px;
+      background: #111;
+      border-radius: 2px;
     }
 
     .fold-block summary {
-      cursor: pointer;
-      font-weight: bold;
-      color: #ffcc00;
+      padding: 0;
+      margin: 0;
       font-size: 14px;
-      padding: 2px 4px;
+      line-height: 1;
+      color: #ffcc00;
     }
 
     .fold-content {
-      padding: 4px 6px;
+      padding: 0;
+      margin: 0;
       font-size: 14px;
+      line-height: 1.2;
       color: #eee;
+    }
+
+    .fold-content br {
+      line-height: 0.5em;
     }
 
     ::selection {
@@ -129,11 +135,16 @@
     // Remove fold block
     document.getElementById("remove-fold").addEventListener("click", () => {
       const sel = window.getSelection();
-      if (!sel.anchorNode) return;
-      const block = sel.anchorNode.closest?.(".fold-block");
-      if (block) {
-        block.remove();
-        console.log("[Monitor] Fold block removed");
+      if (!sel.rangeCount) return;
+      const range = sel.getRangeAt(0);
+      let node = range.startContainer;
+      while (node && node !== noteContent) {
+        if (node.classList?.contains("fold-block")) {
+          node.remove();
+          console.log("[Monitor] Fold block removed");
+          break;
+        }
+        node = node.parentNode;
       }
     });
 
@@ -164,6 +175,18 @@
     function rgbToHex(r, g, b) {
       return "#" + [r, g, b].map(x => x.toString(16).padStart(2, "0")).join("");
     }
+
+    // Prevent empty lines in fold-content
+    noteContent.addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        const sel = window.getSelection();
+        const node = sel.anchorNode;
+        if (node && node.closest(".fold-content")) {
+          e.preventDefault();
+          console.log("[Monitor] Enter blocked in fold-content");
+        }
+      }
+    });
   </script>
 
 </body>
