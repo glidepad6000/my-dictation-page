@@ -103,13 +103,16 @@
         <button id="btn-italic" onclick="toggleFormat('italic')">斜體</button>
         <button id="btn-underline" onclick="toggleCustomFormat('underline')">底線</button>
         <button id="btn-strike" onclick="toggleCustomFormat('strike')">刪除線</button>
-        <button onclick="insertFold()">插入折疊區塊</button>
+        <button onclick="insertFold()">插入折疊區</button>
       </div>
       <div class="toolbar-row">
         <button onclick="toggleColor('red', 'rgb(255, 0, 0)')" id="btn-red">🔴</button>
         <button onclick="toggleColor('pink', 'rgb(255, 192, 203)')" id="btn-pink">🩷</button>
         <button onclick="toggleColor('gold', 'rgb(255, 215, 0)')" id="btn-gold">🟡</button>
-        <button onclick="deleteSelectedFoldBlock()">刪除選取的折疊區</button>
+        <button id="delete-fold" title="刪除折疊區">✕</button>
+	<button id="confirm-delete" style="display:none">✅</button>
+	<button id="cancel-delete" style="display:none">🚫</button>
+
       </div>
     </div>
     <div id="note" class="note-area" contenteditable="true"></div>
@@ -279,6 +282,22 @@
     });
 
     document.addEventListener("selectionchange", updateToolbarState);
+    document.getElementById('delete-fold').onclick = () => {
+  // 顯示確認與取消按鈕
+};
+
+    document.getElementById('confirm-delete').onclick = () => {
+  if (selectedBlock) {
+    selectedBlock.remove(); // ✅ 這裡就是原本函式的核心邏輯
+    selectedBlock = null;
+    log('✅ 已刪除折疊區');
+  }
+  // 隱藏按鈕
+};
+
+    document.getElementById('cancel-delete').onclick = () => {
+  // 清除選取、隱藏按鈕
+};
 
 
 
