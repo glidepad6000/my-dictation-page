@@ -39,7 +39,7 @@
 
     #note-content {
       padding: 10px;
-      height: calc(100vh - 48px);
+      height: calc(100vh - 72px);
       overflow-y: auto;
       white-space: pre-wrap;
       outline: none;
@@ -79,6 +79,15 @@
       outline: 1px solid #0ff;
     }
 
+    #log {
+      height: 24px;
+      padding: 4px 10px;
+      background: #111;
+      font-size: 12px;
+      color: #ccc;
+      border-top: 1px solid #333;
+    }
+
     ::selection {
       background: #444;
       color: #fff;
@@ -94,52 +103,54 @@
     <button onclick="applyUnderline()">U̲</button>
     <button onclick="applyStrike()">S̶</button>
     <button id="add-fold">+</button>
-    <button class="rgb-btn" data-color="#ff0000">🔴</button>
-    <button class="rgb-btn" data-color="#00ff00">🟢</button>
-    <button class="rgb-btn" data-color="#0000ff">🔵</button>
+    <button class="rgb-btn" data-color="#ff0000" style="background:#ff0000">🔴</button>
+    <button class="rgb-btn" data-color="#00ff00" style="background:#00ff00">🟢</button>
+    <button class="rgb-btn" data-color="#0000ff" style="background:#0000ff">🔵</button>
     <button id="remove-fold">−</button>
-    <button id="cancel-remove">✕</button>
+    <button id="cancel-remove" title="取消刪除">✕</button>
   </div>
 
   <!-- Note Content -->
   <div id="note-content" contenteditable="true"></div>
 
+  <!-- Log Viewer -->
+  <div id="log">📋 操作紀錄將顯示於此</div>
+
   <!-- JS Patch -->
   <script>
+    const log = msg => document.getElementById('log').textContent = msg;
+
     function exec(command) {
       const note = document.getElementById('note-content');
       note.focus();
 
       const selection = window.getSelection();
       if (!selection || selection.rangeCount === 0) {
-        console.warn('❌ 沒有選取範圍');
+        log('❌ 沒有選取範圍');
         return;
       }
 
       const range = selection.getRangeAt(0);
       if (!note.contains(range.commonAncestorContainer)) {
-        console.warn('❌ 選取範圍不在 note-content 內');
+        log('❌ 選取範圍不在 note-content 內');
         return;
       }
 
       const success = document.execCommand(command, false, null);
-      console.log(`✅ 執行 ${command}：${success}`);
+      log(`✅ 執行 ${command}：${success}`);
     }
 
-    // 自訂底線（綠色）
     function applyUnderline() {
       const selection = window.getSelection();
       if (!selection || selection.rangeCount === 0) return;
       const range = selection.getRangeAt(0);
       const span = document.createElement('span');
-      span.style.textDecoration = 'underline';
-      span.style.textDecorationColor = '#00ff00';
+      span.style.borderBottom = '2px solid #00ff00';
       span.appendChild(range.extractContents());
       range.insertNode(span);
-      console.log('✅ 套用綠色底線');
+      log('✅ 套用綠色底線');
     }
 
-    // 自訂刪除線（紅色）
     function applyStrike() {
       const selection = window.getSelection();
       if (!selection || selection.rangeCount === 0) return;
@@ -149,10 +160,28 @@
       span.style.textDecorationColor = '#ff0000';
       span.appendChild(range.extractContents());
       range.insertNode(span);
-      console.log('✅ 套用紅色刪除線');
+      log('✅ 套用紅色刪除線');
     }
 
-    // 新增折疊區（預設收縮）
+    document.querySelectorAll('.rgb-btn').forEach(btn => {
+      btn.onclick = () => {
+        const color = btn.dataset.color;
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) {
+          log('❌ 沒有選取範圍');
+          return;
+        }
+
+        const range = selection.getRangeAt(0);
+        const span = document.createElement('span');
+        span.style.color = color;
+        span.style.backgroundColor = '#111'; // 測試顏色對比
+        span.appendChild(range.extractContents());
+        range.insertNode(span);
+        log(`✅ 套用顏色 ${color}`);
+      };
+    });
+
     document.getElementById('add-fold').onclick = () => {
       const block = document.createElement('div');
       block.className = 'fold-block';
@@ -171,34 +200,14 @@
       block.addEventListener('click', () => {
         block.classList.add('active');
         block.classList.add('selected');
-        console.log('✅ 展開並選取折疊區');
+        log('✅ 展開並選取折疊區');
       });
 
       const note = document.getElementById('note-content');
       note.appendChild(block);
-      console.log('✅ 新增折疊區');
+      log('✅ 新增折疊區');
     };
 
-    // RGB 按鈕功能：套用文字顏色
-    document.querySelectorAll('.rgb-btn').forEach(btn => {
-      btn.onclick = () => {
-        const color = btn.dataset.color;
-        const selection = window.getSelection();
-        if (!selection || selection.rangeCount === 0) {
-          console.warn('❌ 沒有選取範圍');
-          return;
-        }
-
-        const range = selection.getRangeAt(0);
-        const span = document.createElement('span');
-        span.style.color = color;
-        span.appendChild(range.extractContents());
-        range.insertNode(span);
-        console.log(`✅ 套用顏色 ${color}`);
-      };
-    });
-
-    // 刪除折疊區（需先選取 + 確認）
     let selectedBlock = null;
 
     document.getElementById('note-content').addEventListener('click', e => {
@@ -208,7 +217,7 @@
       if (block) {
         block.classList.add('selected');
         selectedBlock = block;
-        console.log('✅ 已選取折疊區');
+        log('✅ 已選取折疊區');
       }
     });
 
@@ -220,14 +229,14 @@
       if (confirm('確定要刪除選取的折疊區嗎？')) {
         selectedBlock.remove();
         selectedBlock = null;
-        console.log('✅ 已刪除折疊區');
+        log('✅ 已刪除折疊區');
       }
     };
 
     document.getElementById('cancel-remove').onclick = () => {
       selectedBlock = null;
       document.querySelectorAll('.fold-block').forEach(b => b.classList.remove('selected'));
-      console.log('🚫 已取消選取折疊區');
+      log('🚫 已取消選取折疊區');
     };
   </script>
 
