@@ -94,6 +94,7 @@
   <!-- Note Content -->
   <div id="note-content" contenteditable="true">
 
+這是前文內容
 <div class="fold-block folded">
   <div class="fold-header">Fold</div>
   <div class="fold-content">這是折疊內容</div>
@@ -106,13 +107,22 @@
 </div>
 
   </div>
-<script>
-  function exec(command) {
-    const note = document.getElementById('note-content');
-    note.focus();
-    document.execCommand(command, false, null);
-  }
-</script>
+
+  <!-- JS Patch: 修復格式化功能 -->
+  <script>
+    function exec(command) {
+      const note = document.getElementById('note-content');
+      note.focus();
+
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0) return;
+
+      const range = selection.getRangeAt(0);
+      if (!note.contains(range.commonAncestorContainer)) return;
+
+      document.execCommand(command, false, null);
+    }
+  </script>
 
 </body>
 </html>
