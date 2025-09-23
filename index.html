@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>側邊筆記模組</title>
+  <title>Note Sidebar</title>
   <style>
     html, body {
       margin: 0;
@@ -17,7 +17,6 @@
 
     #toolbar {
       display: flex;
-      flex-wrap: wrap;
       gap: 6px;
       padding: 6px;
       background: #111;
@@ -76,90 +75,90 @@
 </head>
 <body>
 
-  <!-- 工具列 -->
+  <!-- Toolbar -->
   <div id="toolbar">
-    <button onclick="document.execCommand('bold')">🅱️</button>
-    <button onclick="document.execCommand('italic')">𝑖</button>
-    <button onclick="document.execCommand('underline')">U̲</button>
-    <button onclick="document.execCommand('strikeThrough')">S̶</button>
-    <button id="insert-fold">➕折疊</button>
-    <button id="delete-fold">🗑️折疊</button>
-    <button class="color-btn" data-color="#ff0000">🔴</button>
-    <button onclick="document.execCommand('foreColor', false, '#0000ff')">🔵</button>
-
-    <button class="color-btn" data-color="#ffff00">🟡</button>
+    <button onclick="exec('bold')">🅱️</button>
+    <button onclick="exec('italic')">𝑖</button>
+    <button onclick="exec('underline')">U̲</button>
+    <button onclick="exec('strikeThrough')">S̶</button>
+    <button id="add-fold">+</button>
+    <button id="remove-fold">−</button>
+    <button class="rgb-btn" data-color="#ff0000">🔴</button>
+    <button class="rgb-btn" data-color="#00ff00">🟢</button>
+    <button class="rgb-btn" data-color="#0000ff">🔵</button>
   </div>
 
-  <!-- 筆記區 -->
+  <!-- Note Area -->
   <div id="note-content" contenteditable="true" spellcheck="false"></div>
 
   <script>
     const noteContent = document.getElementById("note-content");
 
-    // 自動儲存筆記
+    // Save note
     noteContent.addEventListener("input", () => {
       localStorage.setItem("sideNote", noteContent.innerHTML);
+      console.log("[Monitor] Note updated");
     });
 
-    // 載入儲存內容
+    // Load note
     window.addEventListener("DOMContentLoaded", () => {
       const saved = localStorage.getItem("sideNote");
       if (saved) noteContent.innerHTML = saved;
+      console.log("[Monitor] Note loaded");
     });
 
-    // 插入折疊區塊
-    document.getElementById("insert-fold").addEventListener("click", () => {
+    // Format commands
+    function exec(cmd) {
+      document.execCommand(cmd);
+      console.log(`[Monitor] Format applied: ${cmd}`);
+    }
+
+    // Add fold block
+    document.getElementById("add-fold").addEventListener("click", () => {
       const block = document.createElement("div");
       block.className = "fold-block";
       block.innerHTML = `
         <details open>
-          <summary>折疊區塊</summary>
-          <div class="fold-content" contenteditable="true">請輸入內容...</div>
+          <summary>Fold</summary>
+          <div class="fold-content" contenteditable="true">...</div>
         </details>`;
       noteContent.appendChild(block);
+      console.log("[Monitor] Fold block added");
     });
 
-    // 刪除選取的折疊區塊
-    document.getElementById("delete-fold").addEventListener("click", () => {
+    // Remove fold block
+    document.getElementById("remove-fold").addEventListener("click", () => {
       const sel = window.getSelection();
       if (!sel.anchorNode) return;
       const block = sel.anchorNode.closest?.(".fold-block");
-      if (block) block.remove();
+      if (block) {
+        block.remove();
+        console.log("[Monitor] Fold block removed");
+      }
     });
 
-    // 色彩混合邏輯
-    let selectedColors = [];
+    // RGB color mixing
+    let rgbMix = [];
 
-    document.querySelectorAll(".color-btn").forEach(btn => {
+    document.querySelectorAll(".rgb-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         const color = btn.dataset.color;
-        selectedColors.push(color);
-        if (selectedColors.length === 2) {
-          const mixed = mixColors(selectedColors[0], selectedColors[1]);
+        if (!rgbMix.includes(color)) rgbMix.push(color);
+        console.log(`[Monitor] Color selected: ${color}`);
+        if (rgbMix.length >= 2) {
+          const mixed = mixRGB(rgbMix);
           document.execCommand("foreColor", false, mixed);
-          selectedColors = [];
+          console.log(`[Monitor] Mixed color applied: ${mixed}`);
+          rgbMix = [];
         }
       });
     });
 
-    function mixColors(c1, c2) {
-      const rgb1 = hexToRgb(c1);
-      const rgb2 = hexToRgb(c2);
-      const mixed = {
-        r: Math.round((rgb1.r + rgb2.r) / 2),
-        g: Math.round((rgb1.g + rgb2.g) / 2),
-        b: Math.round((rgb1.b + rgb2.b) / 2)
-      };
-      return rgbToHex(mixed.r, mixed.g, mixed.b);
-    }
-
-    function hexToRgb(hex) {
-      const val = hex.replace("#", "");
-      return {
-        r: parseInt(val.slice(0, 2), 16),
-        g: parseInt(val.slice(2, 4), 16),
-        b: parseInt(val.slice(4, 6), 16)
-      };
+    function mixRGB(colors) {
+      const r = colors.includes("#ff0000") ? 255 : 0;
+      const g = colors.includes("#00ff00") ? 255 : 0;
+      const b = colors.includes("#0000ff") ? 255 : 0;
+      return rgbToHex(r, g, b);
     }
 
     function rgbToHex(r, g, b) {
