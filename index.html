@@ -94,7 +94,6 @@
   <!-- Note Content -->
   <div id="note-content" contenteditable="true">
 
-這是前文內容
 <div class="fold-block folded">
   <div class="fold-header">Fold</div>
   <div class="fold-content">這是折疊內容</div>
@@ -107,6 +106,11 @@
 </div>
 
   </div>
+<script>
+  function exec(command) {
+    document.execCommand(command, false, null);
+  }
+</script>
 
 </body>
 </html>
