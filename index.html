@@ -68,6 +68,11 @@
       line-height: 1.2;
       color: #eee;
       white-space: pre-line;
+      display: none;
+    }
+
+    .fold-block.active .fold-content {
+      display: block;
     }
 
     ::selection {
@@ -92,19 +97,7 @@
   </div>
 
   <!-- Note Content -->
-  <div id="note-content" contenteditable="true">
-這是前文內容
-<div class="fold-block folded">
-  <div class="fold-header">Fold</div>
-  <div class="fold-content">這是折疊內容</div>
-</div>
-<div class="fold-block expanded">
-  <div class="fold-header">Fold</div>
-  <div class="fold-content">...
-這是展開後的中文內容
-這是下一段內容</div>
-</div>
-  </div>
+  <div id="note-content" contenteditable="true"></div>
 
   <!-- JS Patch -->
   <script>
@@ -128,10 +121,10 @@
       console.log(`✅ 執行 ${command}：${success}`);
     }
 
-    // 新增折疊區（無空行）
+    // 新增折疊區（預設收縮）
     document.getElementById('add-fold').onclick = () => {
       const block = document.createElement('div');
-      block.className = 'fold-block folded';
+      block.className = 'fold-block';
 
       const header = document.createElement('div');
       header.className = 'fold-header';
@@ -139,24 +132,64 @@
 
       const content = document.createElement('div');
       content.className = 'fold-content';
-      content.textContent = '這是新建的折疊內容'; // 無空行
+      content.textContent = '這是新建的折疊內容';
 
       block.appendChild(header);
       block.appendChild(content);
 
+      // 點入時展開
+      block.addEventListener('click', () => {
+        block.classList.add('active');
+        console.log('✅ 展開折疊區');
+      });
+
       const note = document.getElementById('note-content');
       note.appendChild(block);
+      console.log('✅ 新增折疊區');
     };
 
-    // 刪除折疊區（含確認提示）
+    // RGB 按鈕功能：套用文字顏色
+    document.querySelectorAll('.rgb-btn').forEach(btn => {
+      btn.onclick = () => {
+        const color = btn.dataset.color;
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) {
+          console.warn('❌ 沒有選取範圍');
+          return;
+        }
+
+        const range = selection.getRangeAt(0);
+        const span = document.createElement('span');
+        span.style.color = color;
+        span.appendChild(range.extractContents());
+        range.insertNode(span);
+        console.log(`✅ 套用顏色 ${color}`);
+      };
+    });
+
+    // 刪除折疊區（需先選取 + 確認）
     document.getElementById('remove-fold').onclick = () => {
-      if (!confirm('確定要刪除最後一個折疊區嗎？')) return;
-
       const blocks = document.querySelectorAll('.fold-block');
-      if (blocks.length === 0) return;
+      let target = null;
 
-      const last = blocks[blocks.length - 1];
-      last.remove();
+      blocks.forEach(block => {
+        block.onclick = () => {
+          blocks.forEach(b => b.classList.remove('selected'));
+          block.classList.add('selected');
+          target = block;
+          console.log('✅ 已選取折疊區');
+        };
+      });
+
+      if (!target) {
+        alert('請先點選要刪除的折疊區');
+        return;
+      }
+
+      if (confirm('確定要刪除選取的折疊區嗎？')) {
+        target.remove();
+        console.log('✅ 已刪除折疊區');
+      }
     };
   </script>
 
