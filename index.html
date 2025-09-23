@@ -283,7 +283,7 @@
 
     document.addEventListener("selectionchange", updateToolbarState);
 
-    let selectedBlock = null;
+let selectedBlock = null;
 
 document.getElementById('note-content').addEventListener('click', e => {
   const blocks = document.querySelectorAll('.fold-block');
@@ -293,8 +293,11 @@ document.getElementById('note-content').addEventListener('click', e => {
     block.classList.add('selected');
     selectedBlock = block;
     log('✅ 已選取折疊區');
+  } else {
+    selectedBlock = null;
   }
 });
+
 
 document.getElementById('delete-fold').onclick = () => {
   if (!selectedBlock) return alert('請先點選要刪除的折疊區');
