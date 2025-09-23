@@ -108,6 +108,8 @@
   </div>
 <script>
   function exec(command) {
+    const note = document.getElementById('note-content');
+    note.focus();
     document.execCommand(command, false, null);
   }
 </script>
