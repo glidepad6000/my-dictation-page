@@ -109,10 +109,7 @@
         <button onclick="toggleColor('red', 'rgb(255, 0, 0)')" id="btn-red">🔴</button>
         <button onclick="toggleColor('pink', 'rgb(255, 192, 203)')" id="btn-pink">🩷</button>
         <button onclick="toggleColor('gold', 'rgb(255, 215, 0)')" id="btn-gold">🟡</button>
-        <button id="delete-fold" title="刪除折疊區">✕</button>
-	<button id="confirm-delete" style="display:none">✅</button>
-	<button id="cancel-delete" style="display:none">🚫</button>
-
+        
       </div>
     </div>
     <div id="note" class="note-area" contenteditable="true"></div>
@@ -282,47 +279,6 @@
     });
 
     document.addEventListener("selectionchange", updateToolbarState);
-
-let selectedBlock = null;
-
-document.getElementById('note-content').addEventListener('click', e => {
-  const blocks = document.querySelectorAll('.fold-block');
-  blocks.forEach(b => b.classList.remove('selected'));
-  const block = e.target.closest('.fold-block');
-  if (block) {
-    block.classList.add('selected');
-    selectedBlock = block;
-    log('✅ 已選取折疊區');
-  } else {
-    selectedBlock = null;
-  }
-});
-
-
-document.getElementById('delete-fold').onclick = () => {
-  if (!selectedBlock) return alert('請先點選要刪除的折疊區');
-  document.getElementById('confirm-delete').style.display = 'inline-block';
-  document.getElementById('cancel-delete').style.display = 'inline-block';
-  log('⚠️ 請確認是否刪除選取的折疊區');
-};
-
-document.getElementById('confirm-delete').onclick = () => {
-  if (selectedBlock) {
-    selectedBlock.remove();
-    selectedBlock = null;
-    log('✅ 已刪除折疊區');
-  }
-  document.getElementById('confirm-delete').style.display = 'none';
-  document.getElementById('cancel-delete').style.display = 'none';
-};
-
-document.getElementById('cancel-delete').onclick = () => {
-  selectedBlock = null;
-  document.querySelectorAll('.fold-block').forEach(b => b.classList.remove('selected'));
-  document.getElementById('confirm-delete').style.display = 'none';
-  document.getElementById('cancel-delete').style.display = 'none';
-  log('🚫 已取消刪除操作');
-};
 
 
 
