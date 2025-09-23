@@ -75,6 +75,10 @@
       display: block;
     }
 
+    .selected {
+      outline: 1px solid #0ff;
+    }
+
     ::selection {
       background: #444;
       color: #fff;
@@ -87,13 +91,14 @@
   <div id="toolbar">
     <button onclick="exec('bold')">🅱️</button>
     <button onclick="exec('italic')">𝑖</button>
-    <button onclick="exec('underline')">U̲</button>
-    <button onclick="exec('strikeThrough')">S̶</button>
+    <button onclick="applyUnderline()">U̲</button>
+    <button onclick="applyStrike()">S̶</button>
     <button id="add-fold">+</button>
     <button class="rgb-btn" data-color="#ff0000">🔴</button>
     <button class="rgb-btn" data-color="#00ff00">🟢</button>
     <button class="rgb-btn" data-color="#0000ff">🔵</button>
     <button id="remove-fold">−</button>
+    <button id="cancel-remove">✕</button>
   </div>
 
   <!-- Note Content -->
@@ -121,6 +126,32 @@
       console.log(`✅ 執行 ${command}：${success}`);
     }
 
+    // 自訂底線（綠色）
+    function applyUnderline() {
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0) return;
+      const range = selection.getRangeAt(0);
+      const span = document.createElement('span');
+      span.style.textDecoration = 'underline';
+      span.style.textDecorationColor = '#00ff00';
+      span.appendChild(range.extractContents());
+      range.insertNode(span);
+      console.log('✅ 套用綠色底線');
+    }
+
+    // 自訂刪除線（紅色）
+    function applyStrike() {
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0) return;
+      const range = selection.getRangeAt(0);
+      const span = document.createElement('span');
+      span.style.textDecoration = 'line-through';
+      span.style.textDecorationColor = '#ff0000';
+      span.appendChild(range.extractContents());
+      range.insertNode(span);
+      console.log('✅ 套用紅色刪除線');
+    }
+
     // 新增折疊區（預設收縮）
     document.getElementById('add-fold').onclick = () => {
       const block = document.createElement('div');
@@ -137,10 +168,10 @@
       block.appendChild(header);
       block.appendChild(content);
 
-      // 點入時展開
       block.addEventListener('click', () => {
         block.classList.add('active');
-        console.log('✅ 展開折疊區');
+        block.classList.add('selected');
+        console.log('✅ 展開並選取折疊區');
       });
 
       const note = document.getElementById('note-content');
@@ -168,28 +199,35 @@
     });
 
     // 刪除折疊區（需先選取 + 確認）
-    document.getElementById('remove-fold').onclick = () => {
+    let selectedBlock = null;
+
+    document.getElementById('note-content').addEventListener('click', e => {
       const blocks = document.querySelectorAll('.fold-block');
-      let target = null;
+      blocks.forEach(b => b.classList.remove('selected'));
+      const block = e.target.closest('.fold-block');
+      if (block) {
+        block.classList.add('selected');
+        selectedBlock = block;
+        console.log('✅ 已選取折疊區');
+      }
+    });
 
-      blocks.forEach(block => {
-        block.onclick = () => {
-          blocks.forEach(b => b.classList.remove('selected'));
-          block.classList.add('selected');
-          target = block;
-          console.log('✅ 已選取折疊區');
-        };
-      });
-
-      if (!target) {
+    document.getElementById('remove-fold').onclick = () => {
+      if (!selectedBlock) {
         alert('請先點選要刪除的折疊區');
         return;
       }
-
       if (confirm('確定要刪除選取的折疊區嗎？')) {
-        target.remove();
+        selectedBlock.remove();
+        selectedBlock = null;
         console.log('✅ 已刪除折疊區');
       }
+    };
+
+    document.getElementById('cancel-remove').onclick = () => {
+      selectedBlock = null;
+      document.querySelectorAll('.fold-block').forEach(b => b.classList.remove('selected'));
+      console.log('🚫 已取消選取折疊區');
     };
   </script>
 
